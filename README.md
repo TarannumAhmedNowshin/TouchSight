@@ -92,7 +92,7 @@ Manually checked on real Wikimedia diagrams: plant cell and animal cell (clean, 
 - **Rate limits and CORS:** a per-client rate limit on conversions protects the API quota. CORS is restricted to configured origins.
 - **Errors** return a reference id. Details only appear when `DEBUG_ERRORS=1` (local dev).
 - **Secrets** live in `.env`, which is git-ignored, and are excluded from the settings `repr` so they can't leak into logs.
-- **The container** runs as a non-root user. Dependencies are pinned. The Next.js app sends basic security headers.
+- **The container** runs as a non-root user. Dependencies are pinned. The Next.js app sends security headers (no framing, no MIME sniffing, strict referrer); its permissions policy allows the microphone and camera for this page only, for voice questions and photos.
 
 ## Run it locally
 
@@ -105,6 +105,8 @@ bash dev.sh               # engine on :8000, web app on http://localhost:3000
 ```
 
 Run the tests with `source .venv/bin/activate && pytest`.
+
+Voice questions need Chrome, Edge or Safari and microphone permission. If the browser reports the mic as blocked, allow it in the site settings (the icon left of the address bar) and, on macOS, under System Settings → Privacy & Security → Microphone. Typed questions always work.
 
 ## Configuration
 
