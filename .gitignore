@@ -9,3 +9,4 @@ node_modules/
 .next/
 frontend/next-env.d.ts
 *.tsbuildinfo
+cache/last_error.txt

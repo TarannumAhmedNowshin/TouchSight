@@ -1,0 +1,294 @@
+{
+  "diagram_type": "anatomy",
+  "title": "Human Heart Chambers",
+  "summary": "Identify the four heart chambers and the major vessels and valves that move blood through them.",
+  "is_3d_perspective": false,
+  "elements": [
+    {
+      "id": "e1",
+      "name": "right atrium",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        386,
+        230,
+        630,
+        420
+      ],
+      "parent": null,
+      "reason": "Upper right chamber receiving deoxygenated blood."
+    },
+    {
+      "id": "e2",
+      "name": "right ventricle",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        630,
+        380,
+        895,
+        620
+      ],
+      "parent": null,
+      "reason": "Lower right chamber pumping to lungs."
+    },
+    {
+      "id": "e3",
+      "name": "left atrium",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        386,
+        520,
+        610,
+        720
+      ],
+      "parent": null,
+      "reason": "Upper left chamber receiving oxygenated blood."
+    },
+    {
+      "id": "e4",
+      "name": "left ventricle",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        610,
+        560,
+        895,
+        820
+      ],
+      "parent": null,
+      "reason": "Lower left chamber pumping to body."
+    },
+    {
+      "id": "e5",
+      "name": "aorta",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        31,
+        380,
+        427,
+        620
+      ],
+      "parent": null,
+      "reason": "Main artery carrying blood to body."
+    },
+    {
+      "id": "e6",
+      "name": "superior vena cava",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        61,
+        180,
+        386,
+        340
+      ],
+      "parent": null,
+      "reason": "Vein bringing blood from upper body."
+    },
+    {
+      "id": "e7",
+      "name": "inferior vena cava",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        793,
+        180,
+        976,
+        320
+      ],
+      "parent": null,
+      "reason": "Vein bringing blood from lower body."
+    },
+    {
+      "id": "e8",
+      "name": "pulmonary artery",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        275,
+        560,
+        427,
+        760
+      ],
+      "parent": null,
+      "reason": "Artery carrying blood to lungs."
+    },
+    {
+      "id": "e9",
+      "name": "pulmonary vein",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        285,
+        760,
+        447,
+        920
+      ],
+      "parent": null,
+      "reason": "Vein returning oxygenated blood from lungs."
+    },
+    {
+      "id": "e10",
+      "name": "pericardium",
+      "kind": "region",
+      "importance": 1,
+      "box_2d": [
+        61,
+        150,
+        976,
+        920
+      ],
+      "parent": null,
+      "reason": "Outer sac enclosing the whole heart."
+    }
+  ],
+  "text_labels": [
+    {
+      "text": "Superior Vena Cava",
+      "box_2d": [
+        122,
+        60,
+        203,
+        280
+      ]
+    },
+    {
+      "text": "Aorta",
+      "box_2d": [
+        122,
+        460,
+        173,
+        560
+      ]
+    },
+    {
+      "text": "Pulmonary Artery",
+      "box_2d": [
+        122,
+        760,
+        203,
+        960
+      ]
+    },
+    {
+      "text": "Pulmonary Vein",
+      "box_2d": [
+        275,
+        790,
+        356,
+        960
+      ]
+    },
+    {
+      "text": "Left Atrium",
+      "box_2d": [
+        386,
+        540,
+        468,
+        680
+      ]
+    },
+    {
+      "text": "Mitral Valve",
+      "box_2d": [
+        478,
+        820,
+        559,
+        960
+      ]
+    },
+    {
+      "text": "Aortic Valve",
+      "box_2d": [
+        569,
+        820,
+        651,
+        960
+      ]
+    },
+    {
+      "text": "Right Atrium",
+      "box_2d": [
+        458,
+        270,
+        539,
+        410
+      ]
+    },
+    {
+      "text": "Left Ventricle",
+      "box_2d": [
+        661,
+        660,
+        742,
+        800
+      ]
+    },
+    {
+      "text": "Pulmonary Valve",
+      "box_2d": [
+        600,
+        30,
+        681,
+        200
+      ]
+    },
+    {
+      "text": "Right Ventricle",
+      "box_2d": [
+        732,
+        430,
+        813,
+        570
+      ]
+    },
+    {
+      "text": "Tricuspid Valve",
+      "box_2d": [
+        712,
+        30,
+        793,
+        200
+      ]
+    },
+    {
+      "text": "Inferior Vena Cava",
+      "box_2d": [
+        966,
+        150,
+        1000,
+        400
+      ]
+    },
+    {
+      "text": "Pericardium",
+      "box_2d": [
+        956,
+        740,
+        1000,
+        920
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "what": "flow direction arrows",
+      "reason": "Redundant once chamber order is labelled."
+    },
+    {
+      "what": "valve leaflet detail",
+      "reason": "Too small to resolve tactually."
+    },
+    {
+      "what": "colour shading of blood",
+      "reason": "Colour not available to touch."
+    },
+    {
+      "what": "internal muscle striations",
+      "reason": "Decorative, not needed for concept."
+    }
+  ]
+}

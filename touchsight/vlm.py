@@ -20,7 +20,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-PROMPT_VERSION = "v4"
+PROMPT_VERSION = "v5"
 CACHE_DIR = Path(__file__).resolve().parent.parent / "cache"
 
 SYSTEM_PROMPT = """You are an expert transcriber of tactile graphics for blind students,
@@ -53,8 +53,11 @@ Analyse the image and return ONLY a JSON object with this exact shape:
 Rules:
 - box_2d coordinates are integers normalised to 0-1000 (y first, then x).
 - Make each element's box tight around the element itself, NOT around its printed label.
-- "region" = an area/shape (organ, cell part, country). "line" = wires, arrows,
-  vessels, axes, boundaries. "point" = a small location marker (city, node).
+- "region" = an area/shape (organ, cell part, country). Rings, layers, walls and bands
+  (e.g. sclera, retina, cell wall, earth's crust) are REGIONS too: give the whole band.
+- "line" = only genuinely thin one-dimensional things: circuit wires, graph axes, rivers,
+  borders. Never use "line" for something whose box covers most of the image.
+- "point" = a small location marker (city, node).
 - importance 3 = essential to the concept, 2 = helpful, 1 = optional context.
 - At most 10 elements. Prefer fewer, larger, meaningful elements.
 - text_labels: every piece of printed text visible in the image (so it can be erased

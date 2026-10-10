@@ -57,7 +57,7 @@ def remove_text(img: np.ndarray, text_labels: list[dict], thin_lines: bool = Tru
         mask[max(0, y0 - pad): y1 + pad, max(0, x0 - pad): x1 + pad] = 255
     if thin_lines:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        dark = (gray < 110).astype(np.uint8) * 255
+        dark = (gray < 150).astype(np.uint8) * 255  # leader lines are often grey, not black
         thick = cv2.morphologyEx(dark, cv2.MORPH_OPEN, np.ones((4, 4), np.uint8))
         thin = cv2.subtract(dark, cv2.dilate(thick, np.ones((3, 3), np.uint8)))
         for b in keep_boxes or []:  # never erase strokes that ARE the content (wires, axes)
@@ -336,9 +336,13 @@ def segment_line(img: np.ndarray, rect) -> MultiLineString | None:
     sub[y0:y1, x0:x1] = dark[y0:y1, x0:x1]
     sub = cv2.morphologyEx(sub, cv2.MORPH_CLOSE, np.ones((3, 3), np.uint8))
     skel = skeletonize(sub > 0)
+    if skel.sum() > 40000:  # far too much ink for one line element: keep only the long strokes
+        skel = skeletonize(cv2.morphologyEx(sub, cv2.MORPH_OPEN, np.ones((5, 5), np.uint8)) > 0)
     paths = _skeleton_paths(skel)
+    diag = float(np.hypot(x1 - x0, y1 - y0))
+    min_len = max(10.0, 0.08 * diag if (x1 - x0) * (y1 - y0) > 0.3 * img.shape[0] * img.shape[1] else 10.0)
     lines = [LineString(p).simplify(1.5) for p in paths if len(p) >= 2]
-    lines = [l for l in lines if l.length > 10]
+    lines = [l for l in lines if l.length > min_len]
     return MultiLineString(lines) if lines else None
 
 

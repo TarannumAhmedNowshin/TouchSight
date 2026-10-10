@@ -3,6 +3,8 @@ from __future__ import annotations
 
 import io
 import json
+import os
+import re
 import logging
 import traceback
 import uuid
@@ -39,7 +41,7 @@ def samples():
     out = []
     for p in sorted(SAMPLES.glob("*")):
         if p.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp"):
-            out.append({"name": p.stem, "url": f"/samples/{p.name}",
+            out.append({"name": p.stem, "url": f"/samples/{p.name}?v={int(p.stat().st_mtime)}",
                         "label": p.stem.replace("_", " ").capitalize()})
     return out
 
@@ -88,6 +90,28 @@ async def convert(file: UploadFile | None = File(None), sample: str | None = For
         JOBS.popitem(last=False)
     result["job"] = job
     return JSONResponse(result)
+
+
+@app.post("/api/samples/save")
+async def save_sample(file: UploadFile = File(...), name: str = Form(...), credit: str = Form("")):
+    """Local helper: store an image as a demo sample (disabled when ALLOW_SAMPLE_UPLOAD=0)."""
+    if os.getenv("ALLOW_SAMPLE_UPLOAD", "1") != "1":
+        raise HTTPException(403, "Saving samples is turned off on this server.")
+    slug = re.sub(r"[^a-z0-9_]+", "_", name.lower()).strip("_")[:40]
+    if not slug:
+        raise HTTPException(400, "Give the sample a name.")
+    data = await file.read()
+    if len(data) > MAX_UPLOAD:
+        raise HTTPException(413, "Image is larger than 12 MB.")
+    ext = {"image/png": ".png", "image/jpeg": ".jpg", "image/webp": ".webp"}.get(file.content_type or "", ".png")
+    (SAMPLES / f"{slug}{ext}").write_bytes(data)
+    if credit:
+        credits = SAMPLES / "CREDITS.md"
+        lines = credits.read_text().splitlines() if credits.exists() else ["# Sample image credits", ""]
+        lines = [l for l in lines if not l.startswith(f"- **{slug}{ext}**")]
+        lines.append(f"- **{slug}{ext}**: {credit}")
+        credits.write_text("\n".join(lines) + "\n")
+    return {"saved": f"{slug}{ext}"}
 
 
 def _job(job: str) -> dict:

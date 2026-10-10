@@ -1,0 +1,339 @@
+{
+  "diagram_type": "anatomy",
+  "title": "Structure of the Human Eye",
+  "summary": "Shows the internal and external anatomical layers and structures of a human eye cross-section.",
+  "is_3d_perspective": false,
+  "elements": [
+    {
+      "id": "e1",
+      "name": "cornea",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        109,
+        329,
+        218,
+        663
+      ],
+      "parent": null,
+      "reason": "outer transparent anterior covering that refracts incoming light"
+    },
+    {
+      "id": "e2",
+      "name": "lens",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        215,
+        373,
+        329,
+        619
+      ],
+      "parent": null,
+      "reason": "focuses light onto the retina at back of eye"
+    },
+    {
+      "id": "e3",
+      "name": "iris",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        177,
+        345,
+        239,
+        649
+      ],
+      "parent": null,
+      "reason": "colored muscular ring controlling size of pupil aperture"
+    },
+    {
+      "id": "e4",
+      "name": "sclera",
+      "kind": "line",
+      "importance": 3,
+      "box_2d": [
+        108,
+        127,
+        836,
+        855
+      ],
+      "parent": null,
+      "reason": "tough outer protective white fibrous layer of the eyeball"
+    },
+    {
+      "id": "e5",
+      "name": "choroid",
+      "kind": "line",
+      "importance": 2,
+      "box_2d": [
+        211,
+        152,
+        815,
+        844
+      ],
+      "parent": "e4",
+      "reason": "middle vascular layer providing oxygen and nourishment"
+    },
+    {
+      "id": "e6",
+      "name": "retina",
+      "kind": "line",
+      "importance": 3,
+      "box_2d": [
+        215,
+        163,
+        810,
+        838
+      ],
+      "parent": "e5",
+      "reason": "light-sensitive inner sensory lining of the eye"
+    },
+    {
+      "id": "e7",
+      "name": "vitreous humour",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        245,
+        172,
+        784,
+        835
+      ],
+      "parent": "e6",
+      "reason": "clear gel filling the large posterior cavity"
+    },
+    {
+      "id": "e8",
+      "name": "optic nerve",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        740,
+        188,
+        982,
+        382
+      ],
+      "parent": null,
+      "reason": "transmits visual signals from retina to the brain"
+    },
+    {
+      "id": "e9",
+      "name": "fovea",
+      "kind": "point",
+      "importance": 2,
+      "box_2d": [
+        781,
+        529,
+        804,
+        547
+      ],
+      "parent": "e6",
+      "reason": "center of sharpest vision located on retina"
+    },
+    {
+      "id": "e10",
+      "name": "anterior chamber",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        114,
+        341,
+        219,
+        654
+      ],
+      "parent": "e1",
+      "reason": "fluid-filled space between the cornea and the iris"
+    }
+  ],
+  "text_labels": [
+    {
+      "text": "Cornea",
+      "box_2d": [
+        41,
+        381,
+        63,
+        488
+      ]
+    },
+    {
+      "text": "Pupil",
+      "box_2d": [
+        78,
+        582,
+        110,
+        654
+      ]
+    },
+    {
+      "text": "Uvea",
+      "box_2d": [
+        80,
+        776,
+        104,
+        851
+      ]
+    },
+    {
+      "text": "Iris",
+      "box_2d": [
+        136,
+        803,
+        159,
+        846
+      ]
+    },
+    {
+      "text": "Ciliary body",
+      "box_2d": [
+        178,
+        818,
+        239,
+        909
+      ]
+    },
+    {
+      "text": "Choroid",
+      "box_2d": [
+        259,
+        824,
+        283,
+        936
+      ]
+    },
+    {
+      "text": "Anterior chamber (aqueous humour)",
+      "box_2d": [
+        46,
+        39,
+        106,
+        304
+      ]
+    },
+    {
+      "text": "Posterior chamber",
+      "box_2d": [
+        112,
+        39,
+        136,
+        304
+      ]
+    },
+    {
+      "text": "Suspensory ligament of lens",
+      "box_2d": [
+        171,
+        40,
+        258,
+        210
+      ]
+    },
+    {
+      "text": "Sclera",
+      "box_2d": [
+        299,
+        45,
+        323,
+        136
+      ]
+    },
+    {
+      "text": "Lens",
+      "box_2d": [
+        253,
+        466,
+        275,
+        534
+      ]
+    },
+    {
+      "text": "Vitreous humour",
+      "box_2d": [
+        353,
+        369,
+        408,
+        488
+      ]
+    },
+    {
+      "text": "Hyaloid canal",
+      "box_2d": [
+        390,
+        537,
+        437,
+        627
+      ]
+    },
+    {
+      "text": "Retinal blood vessels",
+      "box_2d": [
+        725,
+        79,
+        812,
+        187
+      ]
+    },
+    {
+      "text": "Optic nerve",
+      "box_2d": [
+        916,
+        364,
+        946,
+        530
+      ]
+    },
+    {
+      "text": "Optic disc",
+      "box_2d": [
+        914,
+        719,
+        944,
+        862
+      ]
+    },
+    {
+      "text": "Fovea",
+      "box_2d": [
+        849,
+        773,
+        871,
+        861
+      ]
+    },
+    {
+      "text": "Macula",
+      "box_2d": [
+        904,
+        787,
+        927,
+        891
+      ]
+    },
+    {
+      "text": "Retina",
+      "box_2d": [
+        747,
+        813,
+        770,
+        907
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "what": "retinal blood vessels",
+      "reason": "branching patterns too thin and complex for tactile clarity"
+    },
+    {
+      "what": "hyaloid canal",
+      "reason": "developmental remnant unnecessary for basic eye structure concept"
+    },
+    {
+      "what": "suspensory ligaments",
+      "reason": "delicate fibers clutter the lens boundary"
+    },
+    {
+      "what": "uvea grouping bracket",
+      "reason": "hierarchical category better conveyed via text than tactually"
+    }
+  ]
+}

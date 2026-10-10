@@ -1,0 +1,365 @@
+{
+  "diagram_type": "biology",
+  "title": "Plant cell structure",
+  "summary": "Key organelles and structures that make up a plant cell.",
+  "is_3d_perspective": true,
+  "elements": [
+    {
+      "id": "e1",
+      "name": "cell wall",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        191,
+        290,
+        895,
+        868
+      ],
+      "parent": null,
+      "reason": "rigid outer protective layer defining plant cells"
+    },
+    {
+      "id": "e2",
+      "name": "plasma membrane",
+      "kind": "line",
+      "importance": 3,
+      "box_2d": [
+        255,
+        347,
+        736,
+        700
+      ],
+      "parent": "e1",
+      "reason": "inner membrane enclosing the cell contents"
+    },
+    {
+      "id": "e3",
+      "name": "cytoplasm",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        282,
+        360,
+        710,
+        693
+      ],
+      "parent": "e2",
+      "reason": "fluid filling the interior of the cell"
+    },
+    {
+      "id": "e4",
+      "name": "vacuole",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        304,
+        408,
+        603,
+        621
+      ],
+      "parent": "e3",
+      "reason": "large central fluid-filled organelle typical in plant cells"
+    },
+    {
+      "id": "e5",
+      "name": "nucleus",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        468,
+        517,
+        671,
+        663
+      ],
+      "parent": "e3",
+      "reason": "genetic control center containing nucleolus"
+    },
+    {
+      "id": "e6",
+      "name": "chloroplast",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        360,
+        370,
+        468,
+        416
+      ],
+      "parent": "e3",
+      "reason": "site of photosynthesis distinctive to plant cells"
+    },
+    {
+      "id": "e7",
+      "name": "mitochondrion",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        527,
+        381,
+        581,
+        434
+      ],
+      "parent": "e3",
+      "reason": "cellular respiration and energy generation"
+    },
+    {
+      "id": "e8",
+      "name": "endoplasmic reticulum",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        431,
+        584,
+        629,
+        683
+      ],
+      "parent": "e3",
+      "reason": "membrane network surrounding nucleus"
+    },
+    {
+      "id": "e9",
+      "name": "golgi body",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        594,
+        462,
+        686,
+        523
+      ],
+      "parent": "e3",
+      "reason": "organelle that packages proteins"
+    }
+  ],
+  "text_labels": [
+    {
+      "text": "Plasmodesmata",
+      "box_2d": [
+        124,
+        178,
+        146,
+        299
+      ]
+    },
+    {
+      "text": "Plasma membrane",
+      "box_2d": [
+        165,
+        156,
+        187,
+        299
+      ]
+    },
+    {
+      "text": "Cell wall",
+      "box_2d": [
+        203,
+        233,
+        225,
+        296
+      ]
+    },
+    {
+      "text": "Chloroplast",
+      "box_2d": [
+        261,
+        20,
+        285,
+        109
+      ]
+    },
+    {
+      "text": "Thylakoid membrane",
+      "box_2d": [
+        299,
+        16,
+        325,
+        180
+      ]
+    },
+    {
+      "text": "Starch grain",
+      "box_2d": [
+        334,
+        87,
+        360,
+        180
+      ]
+    },
+    {
+      "text": "Vacuole",
+      "box_2d": [
+        404,
+        64,
+        424,
+        126
+      ]
+    },
+    {
+      "text": "Vacuole",
+      "box_2d": [
+        434,
+        98,
+        454,
+        160
+      ]
+    },
+    {
+      "text": "Tonoplast",
+      "box_2d": [
+        460,
+        83,
+        486,
+        160
+      ]
+    },
+    {
+      "text": "Mitochondrion (mitochondria)",
+      "box_2d": [
+        517,
+        49,
+        574,
+        165
+      ]
+    },
+    {
+      "text": "Peroxisome",
+      "box_2d": [
+        618,
+        80,
+        639,
+        169
+      ]
+    },
+    {
+      "text": "Cytoplasm",
+      "box_2d": [
+        731,
+        133,
+        756,
+        214
+      ]
+    },
+    {
+      "text": "Golgi vesicles",
+      "box_2d": [
+        830,
+        194,
+        854,
+        298
+      ]
+    },
+    {
+      "text": "Golgi body (Golgi apparatus)",
+      "box_2d": [
+        877,
+        309,
+        932,
+        451
+      ]
+    },
+    {
+      "text": "Rough endoplasmic reticulum",
+      "box_2d": [
+        883,
+        474,
+        963,
+        573
+      ]
+    },
+    {
+      "text": "Filamentous cytoskeleton",
+      "box_2d": [
+        87,
+        666,
+        142,
+        765
+      ]
+    },
+    {
+      "text": "Small membranous vesicles",
+      "box_2d": [
+        143,
+        828,
+        194,
+        977
+      ]
+    },
+    {
+      "text": "Smooth endoplasmic reticulum",
+      "box_2d": [
+        353,
+        879,
+        435,
+        980
+      ]
+    },
+    {
+      "text": "Ribosomes",
+      "box_2d": [
+        465,
+        893,
+        486,
+        978
+      ]
+    },
+    {
+      "text": "Nucleus",
+      "box_2d": [
+        760,
+        802,
+        781,
+        863
+      ]
+    },
+    {
+      "text": "Nuclear pore",
+      "box_2d": [
+        793,
+        805,
+        817,
+        904
+      ]
+    },
+    {
+      "text": "Nuclear envelope",
+      "box_2d": [
+        824,
+        805,
+        849,
+        939
+      ]
+    },
+    {
+      "text": "Nucleolus",
+      "box_2d": [
+        854,
+        805,
+        876,
+        882
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "what": "Plasmodesmata",
+      "reason": "too small to resolve tactually"
+    },
+    {
+      "what": "Ribosomes",
+      "reason": "tiny dots that cause tactile clutter"
+    },
+    {
+      "what": "Cytoskeleton filaments",
+      "reason": "fine lines confusing when raised"
+    },
+    {
+      "what": "Nuclear pores and envelope",
+      "reason": "microscopic details better represented simply as nucleus"
+    },
+    {
+      "what": "Tonoplast and starch grains",
+      "reason": "sub-organellar details unnecessary for basic structure"
+    }
+  ]
+}

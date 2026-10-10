@@ -131,6 +131,22 @@ def _clean_poly(p: Polygon) -> Polygon:
     return Polygon(_largest(sm).exterior).simplify(0.15) if not sm.is_empty else p
 
 
+def _min_oval(p: Polygon) -> Polygon:
+    """Oval at least 1/4 inch across, keeping the shape's orientation and elongation."""
+    rect = p.minimum_rotated_rectangle
+    xs, ys = rect.exterior.coords.xy
+    sides = [math.hypot(xs[i + 1] - xs[i], ys[i + 1] - ys[i]) for i in range(2)]
+    ang = math.degrees(math.atan2(ys[1] - ys[0], xs[1] - xs[0]))
+    a, b = max(sides[0], 1e-3), max(sides[1], 1e-3)
+    k = (MIN_SIZE * 1.35) / min(a, b)
+    a, b = a * k, b * k
+    if max(a, b) > 3 * min(a, b):  # keep it compact
+        a, b = (min(a, 3 * b), b) if a > b else (a, min(b, 3 * a))
+    c = p.centroid
+    oval = affinity.scale(Point(0, 0).buffer(1, 32), a / 2, b / 2)
+    return affinity.translate(affinity.rotate(oval, ang, origin=(0, 0)), c.x, c.y)
+
+
 def _too_small(p: Polygon) -> bool:
     return p.buffer(-MIN_SIZE / 2 + 0.05).is_empty
 
@@ -270,6 +286,21 @@ def autofix(els: list[dict], issues: list[Issue]) -> tuple[list[dict], list[str]
                             e["geom"] = q
                             iss.fixed, iss.fix = True, f"enlarged {f:.2g}x"
                             break
+                if not iss.fixed:
+                    # symbolic enlargement, as transcribers do: a minimum-size oval with the same orientation
+                    q = _min_oval(p)
+                    par = ids.get(e.get("parent"))
+                    if par is not None and par["kind"] == "region":
+                        inner = par["geom"].buffer(-MIN_GAP - 0.3)
+                        if not inner.contains(q):
+                            c = inner.representative_point() if inner.distance(q.centroid) > 0 else q.centroid
+                            nearest = inner.exterior.interpolate(inner.exterior.project(q.centroid)) if not inner.contains(q.centroid) else q.centroid
+                            q = affinity.translate(q, nearest.x - q.centroid.x, nearest.y - q.centroid.y)
+                            if not inner.contains(q):
+                                q = affinity.translate(q, (c.x - q.centroid.x) * 0.5, (c.y - q.centroid.y) * 0.5)
+                    if not _too_small(q):
+                        e["geom"] = q
+                        iss.fixed, iss.fix = True, "replaced with a minimum-size symbol"
         elif iss.code == "crowded_edge":
             e, par = ids[iss.ids[0]], ids[iss.ids[1]]
             q = _largest(e["geom"].intersection(par["geom"].buffer(-MIN_GAP - 0.4)))

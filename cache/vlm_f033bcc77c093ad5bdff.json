@@ -1,0 +1,112 @@
+{
+  "diagram_type": "biology",
+  "title": "Animal Cell Structure",
+  "summary": "Identify basic animal cell structures including cell membrane, cytoplasm, nucleus, and mitochondrion.",
+  "is_3d_perspective": false,
+  "elements": [
+    {
+      "id": "e1",
+      "name": "cell membrane",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        64,
+        369,
+        936,
+        952
+      ],
+      "parent": null,
+      "reason": "outer boundary defining the cell"
+    },
+    {
+      "id": "e2",
+      "name": "cytoplasm",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        69,
+        372,
+        930,
+        949
+      ],
+      "parent": "e1",
+      "reason": "fluid filling the cell containing organelles"
+    },
+    {
+      "id": "e3",
+      "name": "nucleus",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        307,
+        524,
+        471,
+        623
+      ],
+      "parent": "e2",
+      "reason": "core organelle containing genetic material"
+    },
+    {
+      "id": "e4",
+      "name": "mitochondrion",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        629,
+        580,
+        643,
+        603
+      ],
+      "parent": "e2",
+      "reason": "energy-producing organelle indicated by label"
+    }
+  ],
+  "text_labels": [
+    {
+      "text": "Cytoplasm",
+      "box_2d": [
+        294,
+        135,
+        341,
+        327
+      ]
+    },
+    {
+      "text": "Nucleus",
+      "box_2d": [
+        366,
+        185,
+        405,
+        327
+      ]
+    },
+    {
+      "text": "Cell membrane",
+      "box_2d": [
+        435,
+        49,
+        475,
+        327
+      ]
+    },
+    {
+      "text": "Mitochondrion",
+      "box_2d": [
+        611,
+        71,
+        652,
+        327
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "what": "repeated mitochondria",
+      "reason": "multiple small dots cause clutter without adding concepts"
+    },
+    {
+      "what": "leader lines",
+      "reason": "replaced by direct tactile labeling"
+    }
+  ]
+}

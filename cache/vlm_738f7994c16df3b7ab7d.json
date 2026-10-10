@@ -1,0 +1,366 @@
+{
+  "diagram_type": "biology",
+  "title": "Animal Cell Structure",
+  "summary": "An animal cell containing major organelles including the nucleus, mitochondria, endoplasmic reticulum, and flagellum.",
+  "is_3d_perspective": true,
+  "elements": [
+    {
+      "id": "e1",
+      "name": "plasma membrane",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        194,
+        203,
+        911,
+        942
+      ],
+      "parent": null,
+      "reason": "outer boundary defining the cell structure"
+    },
+    {
+      "id": "e2",
+      "name": "cytoplasm",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        280,
+        273,
+        740,
+        807
+      ],
+      "parent": "e1",
+      "reason": "fluid interior containing all the cellular organelles"
+    },
+    {
+      "id": "e3",
+      "name": "nucleus",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        339,
+        417,
+        541,
+        604
+      ],
+      "parent": "e2",
+      "reason": "central organelle housing genetic material"
+    },
+    {
+      "id": "e4",
+      "name": "nucleolus",
+      "kind": "point",
+      "importance": 2,
+      "box_2d": [
+        416,
+        489,
+        464,
+        523
+      ],
+      "parent": "e3",
+      "reason": "dense region inside nucleus that produces ribosomes"
+    },
+    {
+      "id": "e5",
+      "name": "endoplasmic reticulum",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        458,
+        396,
+        604,
+        552
+      ],
+      "parent": "e2",
+      "reason": "membranous network continuous with the nuclear envelope"
+    },
+    {
+      "id": "e6",
+      "name": "golgi apparatus",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        357,
+        335,
+        461,
+        431
+      ],
+      "parent": "e2",
+      "reason": "organelle that sorts and packages proteins"
+    },
+    {
+      "id": "e7",
+      "name": "mitochondrion",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        369,
+        683,
+        468,
+        768
+      ],
+      "parent": "e2",
+      "reason": "powerhouse organelle generating cellular energy"
+    },
+    {
+      "id": "e8",
+      "name": "centrosome",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        516,
+        597,
+        582,
+        640
+      ],
+      "parent": "e2",
+      "reason": "organelle organizing microtubules during cell division"
+    },
+    {
+      "id": "e9",
+      "name": "flagellum",
+      "kind": "line",
+      "importance": 3,
+      "box_2d": [
+        659,
+        140,
+        970,
+        396
+      ],
+      "parent": "e1",
+      "reason": "whip-like projection used by the cell for locomotion"
+    }
+  ],
+  "text_labels": [
+    {
+      "text": "Nucleus",
+      "box_2d": [
+        19,
+        269,
+        43,
+        336
+      ]
+    },
+    {
+      "text": "Nuclear pore",
+      "box_2d": [
+        52,
+        305,
+        76,
+        397
+      ]
+    },
+    {
+      "text": "Chromatin",
+      "box_2d": [
+        82,
+        330,
+        108,
+        397
+      ]
+    },
+    {
+      "text": "Nuclear envelope",
+      "box_2d": [
+        114,
+        272,
+        138,
+        397
+      ]
+    },
+    {
+      "text": "Nucleus",
+      "box_2d": [
+        145,
+        337,
+        164,
+        397
+      ]
+    },
+    {
+      "text": "Nucleolus",
+      "box_2d": [
+        175,
+        326,
+        196,
+        397
+      ]
+    },
+    {
+      "text": "Plasma membrane",
+      "box_2d": [
+        372,
+        102,
+        392,
+        236
+      ]
+    },
+    {
+      "text": "Golgi vesicles",
+      "box_2d": [
+        413,
+        137,
+        437,
+        235
+      ]
+    },
+    {
+      "text": "(golgi apparatus)",
+      "box_2d": [
+        444,
+        115,
+        468,
+        235
+      ]
+    },
+    {
+      "text": "Ribosomes",
+      "box_2d": [
+        496,
+        155,
+        516,
+        235
+      ]
+    },
+    {
+      "text": "Rough endoplasmic reticulum",
+      "box_2d": [
+        538,
+        27,
+        561,
+        235
+      ]
+    },
+    {
+      "text": "Smooth endoplasmic reticulum",
+      "box_2d": [
+        579,
+        18,
+        598,
+        235
+      ]
+    },
+    {
+      "text": "Actin Filaments",
+      "box_2d": [
+        621,
+        126,
+        639,
+        235
+      ]
+    },
+    {
+      "text": "Flagellum",
+      "box_2d": [
+        888,
+        409,
+        911,
+        480
+      ]
+    },
+    {
+      "text": "Peroxisome",
+      "box_2d": [
+        179,
+        821,
+        196,
+        905
+      ]
+    },
+    {
+      "text": "Microtubule",
+      "box_2d": [
+        218,
+        821,
+        236,
+        904
+      ]
+    },
+    {
+      "text": "Lysosome",
+      "box_2d": [
+        259,
+        822,
+        283,
+        893
+      ]
+    },
+    {
+      "text": "Free Ribosomes",
+      "box_2d": [
+        301,
+        822,
+        320,
+        938
+      ]
+    },
+    {
+      "text": "Mitochondrion",
+      "box_2d": [
+        342,
+        821,
+        360,
+        921
+      ]
+    },
+    {
+      "text": "Intermediate Filaments",
+      "box_2d": [
+        384,
+        821,
+        402,
+        984
+      ]
+    },
+    {
+      "text": "Cytoplasm",
+      "box_2d": [
+        703,
+        821,
+        727,
+        896
+      ]
+    },
+    {
+      "text": "Secretory vesicle",
+      "box_2d": [
+        745,
+        822,
+        767,
+        942
+      ]
+    },
+    {
+      "text": "Centrosome",
+      "box_2d": [
+        785,
+        822,
+        804,
+        908
+      ]
+    },
+    {
+      "text": "(with 2 centrioles)",
+      "box_2d": [
+        816,
+        821,
+        840,
+        946
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "what": "peroxisomes and lysosomes",
+      "reason": "tiny spherical vesicles clutter tactile map"
+    },
+    {
+      "what": "microtubules and intermediate filaments",
+      "reason": "fine cytoskeletal mesh causes tactile confusion"
+    },
+    {
+      "what": "ribosome dots",
+      "reason": "microscopic specks impossible to distinguish tactilely"
+    }
+  ]
+}

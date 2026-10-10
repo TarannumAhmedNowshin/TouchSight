@@ -1,0 +1,275 @@
+{
+  "diagram_type": "biology",
+  "title": "Mature Flower Anatomy",
+  "summary": "Illustrates the main reproductive and vegetative structures of a flower, with insets for the pistil and stamen.",
+  "is_3d_perspective": true,
+  "elements": [
+    {
+      "id": "e1",
+      "name": "petal",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        230,
+        269,
+        640,
+        735
+      ],
+      "parent": null,
+      "reason": "outer colorful floral layer attracting pollinators"
+    },
+    {
+      "id": "e2",
+      "name": "sepal",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        564,
+        395,
+        740,
+        582
+      ],
+      "parent": null,
+      "reason": "outer protective base of the flower"
+    },
+    {
+      "id": "e3",
+      "name": "pedicel",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        775,
+        412,
+        950,
+        471
+      ],
+      "parent": null,
+      "reason": "stem supporting the flower"
+    },
+    {
+      "id": "e4",
+      "name": "pistil",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        315,
+        425,
+        706,
+        545
+      ],
+      "parent": null,
+      "reason": "central female reproductive organ"
+    },
+    {
+      "id": "e5",
+      "name": "stamen",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        362,
+        523,
+        694,
+        603
+      ],
+      "parent": null,
+      "reason": "male reproductive organ producing pollen"
+    },
+    {
+      "id": "e6",
+      "name": "ovary detail",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        62,
+        15,
+        457,
+        166
+      ],
+      "parent": null,
+      "reason": "magnified view of ovary showing ovules"
+    },
+    {
+      "id": "e7",
+      "name": "anther detail",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        467,
+        739,
+        822,
+        927
+      ],
+      "parent": null,
+      "reason": "magnified view of anther with pollen grains"
+    }
+  ],
+  "text_labels": [
+    {
+      "text": "Mature flower",
+      "box_2d": [
+        74,
+        362,
+        137,
+        635
+      ]
+    },
+    {
+      "text": "pistil",
+      "box_2d": [
+        130,
+        171,
+        187,
+        240
+      ]
+    },
+    {
+      "text": "ovules",
+      "box_2d": [
+        92,
+        85,
+        119,
+        147
+      ]
+    },
+    {
+      "text": "stigma",
+      "box_2d": [
+        173,
+        272,
+        208,
+        335
+      ]
+    },
+    {
+      "text": "style",
+      "box_2d": [
+        223,
+        255,
+        259,
+        298
+      ]
+    },
+    {
+      "text": "ovary",
+      "box_2d": [
+        291,
+        203,
+        318,
+        256
+      ]
+    },
+    {
+      "text": "petal/corolla",
+      "box_2d": [
+        623,
+        174,
+        659,
+        290
+      ]
+    },
+    {
+      "text": "sepal/calyx",
+      "box_2d": [
+        683,
+        188,
+        721,
+        294
+      ]
+    },
+    {
+      "text": "perianth",
+      "box_2d": [
+        746,
+        152,
+        803,
+        277
+      ]
+    },
+    {
+      "text": "nectary",
+      "box_2d": [
+        851,
+        317,
+        887,
+        387
+      ]
+    },
+    {
+      "text": "floral axis",
+      "box_2d": [
+        761,
+        514,
+        789,
+        604
+      ]
+    },
+    {
+      "text": "pedicel",
+      "box_2d": [
+        901,
+        495,
+        938,
+        562
+      ]
+    },
+    {
+      "text": "connective",
+      "box_2d": [
+        379,
+        738,
+        410,
+        841
+      ]
+    },
+    {
+      "text": "microsporangium",
+      "box_2d": [
+        697,
+        781,
+        733,
+        945
+      ]
+    },
+    {
+      "text": "filament",
+      "box_2d": [
+        778,
+        803,
+        808,
+        878
+      ]
+    },
+    {
+      "text": "anther",
+      "box_2d": [
+        626,
+        904,
+        656,
+        965
+      ]
+    },
+    {
+      "text": "stamen",
+      "box_2d": [
+        851,
+        743,
+        894,
+        857
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "what": "individual pollen grains",
+      "reason": "too small to resolve tactilely"
+    },
+    {
+      "what": "inset circle overlays and arrows",
+      "reason": "visual convention; tactile diagrams present insets directly"
+    },
+    {
+      "what": "petal shading folds",
+      "reason": "surface texture clutter"
+    }
+  ]
+}

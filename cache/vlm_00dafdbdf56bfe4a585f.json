@@ -1,0 +1,185 @@
+{
+  "diagram_type": "biology",
+  "title": "Plant Cell Structure",
+  "summary": "Identify the key components and organelles of a typical plant cell.",
+  "is_3d_perspective": false,
+  "elements": [
+    {
+      "id": "e1",
+      "name": "cell wall",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        61,
+        488,
+        937,
+        955
+      ],
+      "parent": null,
+      "reason": "outer structural boundary of the plant cell"
+    },
+    {
+      "id": "e2",
+      "name": "cell membrane",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        80,
+        501,
+        917,
+        941
+      ],
+      "parent": "e1",
+      "reason": "inner membrane lining just beneath cell wall"
+    },
+    {
+      "id": "e3",
+      "name": "cytoplasm",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        80,
+        501,
+        917,
+        941
+      ],
+      "parent": "e2",
+      "reason": "fluid medium enclosing cellular organelles"
+    },
+    {
+      "id": "e4",
+      "name": "nucleus",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        309,
+        577,
+        471,
+        672
+      ],
+      "parent": "e3",
+      "reason": "organelle containing genetic material"
+    },
+    {
+      "id": "e5",
+      "name": "permanent vacuole",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        343,
+        695,
+        799,
+        911
+      ],
+      "parent": "e3",
+      "reason": "large central fluid-filled organelle"
+    },
+    {
+      "id": "e6",
+      "name": "chloroplast",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        742,
+        526,
+        860,
+        586
+      ],
+      "parent": "e3",
+      "reason": "representative organelle for photosynthesis"
+    },
+    {
+      "id": "e7",
+      "name": "mitochondrion",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        624,
+        620,
+        640,
+        653
+      ],
+      "parent": "e3",
+      "reason": "representative site of cellular respiration"
+    }
+  ],
+  "text_labels": [
+    {
+      "text": "Cytoplasm",
+      "box_2d": [
+        297,
+        214,
+        343,
+        394
+      ]
+    },
+    {
+      "text": "Nucleus",
+      "box_2d": [
+        367,
+        261,
+        404,
+        394
+      ]
+    },
+    {
+      "text": "Cell membrane",
+      "box_2d": [
+        438,
+        134,
+        476,
+        394
+      ]
+    },
+    {
+      "text": "Cellulose cell wall",
+      "box_2d": [
+        507,
+        96,
+        544,
+        394
+      ]
+    },
+    {
+      "text": "Mitochondrion",
+      "box_2d": [
+        609,
+        154,
+        647,
+        394
+      ]
+    },
+    {
+      "text": "Permanent vacuole",
+      "box_2d": [
+        679,
+        71,
+        716,
+        394
+      ]
+    },
+    {
+      "text": "Chloroplast",
+      "box_2d": [
+        748,
+        204,
+        793,
+        394
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "what": "scattered duplicate chloroplasts",
+      "reason": "repeating shapes clutter tactile space"
+    },
+    {
+      "what": "scattered duplicate mitochondria",
+      "reason": "tiny duplicated shapes cause tactile confusion"
+    },
+    {
+      "what": "pointer lines and dots",
+      "reason": "braille labels replace leader lines"
+    }
+  ]
+}

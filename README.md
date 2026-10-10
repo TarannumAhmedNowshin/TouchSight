@@ -9,7 +9,7 @@ TouchSight produces a guideline-following first draft in seconds, for a transcri
 ## What it does
 
 1. **Understand.** A vision-language model (Gemini, with open-source Qwen VL on Groq as automatic fallback) reads the diagram the way a tactile transcriber would. It decides which parts a student needs, finds where they are, reads the printed labels, and lists what to leave out and why.
-2. **Trace.** Each kept part is segmented from the image with box-prompted GrabCut, using the model's bounding boxes as prompts. Printed text and hairline leader lines are inpainted away first. Masks become vector outlines, simplified and smoothed at real physical scale.
+2. **Trace.** The image is split into flat-colour patches, and each patch is assigned to the smallest box the model drew that contains it. Shaded structures are rebuilt from their gradient bands and neighbouring parts can't overlap. Box-prompted GrabCut is the fallback. Printed text and hairline leader lines are inpainted away first. Masks become vector outlines, simplified and smoothed at real physical scale.
 3. **Design for touch.** The tactile rules are enforced in code:
    - elements at least ¼″ (6.35 mm), with at least ⅛″ (3.175 mm) between them
    - neighbouring areas get clearly different textures, assigned by graph colouring on a region-adjacency graph; one texture always means one thing
@@ -38,7 +38,8 @@ touchsight/tactile.py   physical layout, textures, braille labels, validator + a
 touchsight/braille.py   Grade 1 braille with real dot geometry
 touchsight/export.py    SVG, height map, STL
 frontend/               Next.js web app (three.js relief viewer)
-samples/                demo diagrams
+samples/                demo diagrams (credits in samples/CREDITS.md)
+tests/fixtures/         test images with stored analyses for offline runs
 ```
 
 ## Built with and credits
@@ -47,6 +48,7 @@ samples/                demo diagrams
 - Computer vision and geometry: OpenCV (GrabCut, inpainting), scikit-image (skeletonisation), Shapely, NetworkX, NumPy, numpy-stl
 - Web: FastAPI, Next.js, React, three.js
 - Typeface: Atkinson Hyperlegible, designed by the Braille Institute
+- Sample diagrams: Wikimedia Commons (heart by Wapcaplet, CC BY-SA 3.0; eye by Rhcastilhos and Jmarchn, CC BY-SA 3.0; simple animal and plant cells by domdomegg, CC BY 4.0). Full credits in `samples/CREDITS.md`
 - Design rules: BANA *Guidelines and Standards for Tactile Graphics*; tactilegraphics.org design principles
 - Related work: TactileNet (2025, arXiv:2504.04722) generates tactile-style images with diffusion models for fixed object classes. TouchSight instead converts the specific diagram a teacher already has, adds braille and a key, and enforces the size and spacing rules in code.
 - Generative AI disclosure: Claude (Anthropic) was used as a coding assistant during the hackathon.
