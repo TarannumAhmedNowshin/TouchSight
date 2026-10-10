@@ -129,9 +129,15 @@ def _convert(image: bytes, analysis: dict | None = None, exclude: set[str] | Non
 
 
 # ------------------------------------------------------------------ routes
+log.info("vision providers configured: gemini=%s groq=%s",
+         "yes" if settings.gemini_api_key else "NO", "yes" if settings.groq_api_key else "NO")
+
+
 @app.get("/api/health")
 def health():
-    return {"status": "ok"}
+    # whether each provider has a key (never the key itself) makes deployment problems obvious
+    return {"status": "ok", "gemini_configured": bool(settings.gemini_api_key),
+            "groq_configured": bool(settings.groq_api_key)}
 
 
 @app.get("/api/samples")

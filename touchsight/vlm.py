@@ -365,6 +365,7 @@ def answer_question(question: str, facts: list[str]) -> tuple[str, str]:
                     "generationConfig": {"temperature": 0.3, "maxOutputTokens": 400}}
             return _clean_answer(_gemini_generate(body)), provider_label("gemini")
         except (VisionError, KeyError, httpx.HTTPError) as ex:
+            log.warning("gemini failed (ask): %s", ex)
             errors.append(f"gemini: {ex}")
     if settings.groq_api_key:
         try:
