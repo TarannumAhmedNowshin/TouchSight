@@ -1,0 +1,18 @@
+# Render blueprint for the TouchSight engine (Dashboard -> New -> Blueprint -> pick this repo)
+services:
+  - type: web
+    name: touchsight-engine
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false          # paste in the Render dashboard; never commit keys
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false          # your Vercel URL, e.g. https://touchsight.vercel.app
+      - key: RATE_LIMIT_PER_MIN
+        value: "12"

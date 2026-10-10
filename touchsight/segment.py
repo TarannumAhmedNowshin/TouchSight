@@ -128,8 +128,11 @@ class ColourRegions:
         k = min(k, max(2, len(np.unique(data, axis=0))))
         _, _, centers = cv2.kmeans(data, k, None, crit, 2, cv2.KMEANS_PP_CENTERS)
         flat = lab.reshape(-1, 3).astype(np.float32)
-        d = ((flat[:, None, :] - centers[None, :, :]) ** 2).sum(-1)
-        labels = d.argmin(1).reshape(h, w).astype(np.int32)
+        labels = np.empty(len(flat), np.int32)
+        for i in range(0, len(flat), 65536):  # chunked: keeps peak memory small on 512 MB hosts
+            chunk = flat[i:i + 65536]
+            labels[i:i + 65536] = ((chunk[:, None, :] - centers[None, :, :]) ** 2).sum(-1).argmin(1)
+        labels = labels.reshape(h, w)
         dark = lab[:, :, 0] < 70  # outlines and text are boundaries, never regions
         labels[dark] = -1
         self.shape = (h, w)

@@ -74,7 +74,9 @@ _hits_lock = threading.Lock()
 def rate_limit(request: Request, bucket: str = "convert", per_min: int | None = None) -> None:
     """Sliding-window limit per client and endpoint (protects the vision API quota)."""
     limit = per_min or settings.rate_limit_per_min
-    client = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "?")
+    # the right-most X-Forwarded-For entry is the one added by our own proxy; earlier ones are client-supplied
+    forwarded = [h.strip() for h in request.headers.get("x-forwarded-for", "").split(",") if h.strip()]
+    client = forwarded[-1] if forwarded else (request.client.host if request.client else "?")
     now = time.monotonic()
     with _hits_lock:
         q = _hits[f"{bucket}:{client}"]

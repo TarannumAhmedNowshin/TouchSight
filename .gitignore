@@ -21,3 +21,6 @@ outputs/
 cache/*.tmp
 cache/last_error.txt
 .DS_Store
+
+# private hackathon notes (video script, Devpost draft)
+docs/

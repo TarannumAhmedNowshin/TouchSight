@@ -225,3 +225,7 @@ button, input { font: inherit; color: inherit; }
 .turns .a { margin: 4px 0; }
 .replay { border: 0; background: none; padding: 0; color: var(--ink-soft); text-decoration: underline; cursor: pointer; font: inherit; font-size: 14px; }
 @media (max-width: 960px) { .tools { margin-left: 0; width: 100%; } }
+
+.engine-note { max-width: 1320px; margin: 0 auto 12px; padding: 10px 24px; color: var(--ink); background: #fff6d6; border-radius: var(--radius-s); }
+.engine-note.down { background: #fbeaea; color: #7a1f1f; }
+@media (min-width: 1368px) { .engine-note { padding: 10px 16px; } }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { apiUrl } from "@/lib/api";
 import { Result, TEX_NAMES } from "@/lib/types";
 
 /** The braille key, the screen-reader description and the downloads. */
@@ -37,9 +38,9 @@ export default function KeyPanel({ result }: { result: Result }) {
 
       <h2 className="dl-h">Download</h2>
       <div className="downloads">
-        <a className="btn primary" href={`/api/download/${result.job}/svg`} download>Print file for swell paper (SVG)</a>
-        <a className="btn" href={`/api/download/${result.job}/stl`} download>3D-print file (STL)</a>
-        <a className="btn ghost" href={`/api/download/${result.job}/heightmap`} download>Height map (PNG)</a>
+        <a className="btn primary" href={apiUrl(`/api/download/${result.job}/svg`)} download>Print file for swell paper (SVG)</a>
+        <a className="btn" href={apiUrl(`/api/download/${result.job}/stl`)} download>3D-print file (STL)</a>
+        <a className="btn ghost" href={apiUrl(`/api/download/${result.job}/heightmap`)} download>Height map (PNG)</a>
       </div>
       <p className="meta">
         Read by {result.provider}. Diagram type: {result.diagram_type}.{" "}

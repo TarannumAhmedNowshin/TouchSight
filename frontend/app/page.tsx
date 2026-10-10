@@ -54,8 +54,16 @@ export default function Home() {
 
   useEffect(() => setVoiceOk(canSpeak()), []);
 
+  const [engine, setEngine] = useState<"ok" | "waking" | "down">("ok");
+
   useEffect(() => {
-    api.listSamples().then(setSamples).catch(() => setSamples([]));
+    let alive = true;
+    api.wake(() => alive && setEngine("waking")).then((up) => {
+      if (!alive) return;
+      setEngine(up ? "ok" : "down");
+      if (up) api.listSamples().then(setSamples).catch(() => setSamples([]));
+    });
+    return () => { alive = false; };
   }, []);
 
   /** Run a request while walking the step list (the server does every stage in one call). */
@@ -73,6 +81,9 @@ export default function Home() {
       setActiveId(null);
       setResult(data);
       setHot(null);
+      if (window.innerWidth < 960) {  // phones: the result renders below the inputs, so bring it into view
+        requestAnimationFrame(() => document.querySelector(".stage")?.scrollIntoView({ behavior: "smooth" }));
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -147,6 +158,14 @@ export default function Home() {
           distinct textures, braille labels, ready to print on swell paper or 3D-print.
         </p>
       </header>
+
+      {engine !== "ok" && (
+        <p className={`engine-note${engine === "down" ? " down" : ""}`} role="status">
+          {engine === "waking"
+            ? "Starting the engine. Free hosting sleeps when idle, so the first visit can take up to a minute."
+            : "The engine isn't responding. Refresh the page in a minute."}
+        </p>
+      )}
 
       <main className="layout">
         <aside className="input">
