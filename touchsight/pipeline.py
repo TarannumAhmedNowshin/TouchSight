@@ -10,7 +10,7 @@ import cv2
 import numpy as np
 
 from . import braille as br
-from . import export, segment, tactile, vlm
+from . import export, segment, spatial, tactile, vlm
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +22,7 @@ class Output:
     heightmap: np.ndarray
     svg_print: str
     analysis: dict
+    facts: list[str]          # layout facts that ground spoken answers about this page
 
 
 def _timer():
@@ -105,9 +106,13 @@ def run(image_bytes: bytes, analysis: dict | None = None, exclude: set[str] | No
         "heightmap_png": base64.b64encode(export.png_bytes(heightmap)).decode(),
         "segmentation_png": base64.b64encode(overlay.tobytes()).decode() if ok else None,
         "page_mm": [tactile.PAGE_W, tactile.PAGE_H],
+        "shapes": spatial.hit_shapes(scene),
+        "tour": spatial.tour(scene),
         "timings": timings,
     }
-    return Output(report=report, heightmap=heightmap, svg_print=svg_print, analysis=analysis)
+    facts = [f"Title: {scene.title}. Summary: {scene.summary}"] + spatial.layout_facts(scene)
+    facts += [f"Left out of the tactile version: {d['what']} ({d['reason']})." for d in scene.dropped]
+    return Output(report=report, heightmap=heightmap, svg_print=svg_print, analysis=analysis, facts=facts)
 
 
 def describe(scene: tactile.Scene) -> str:

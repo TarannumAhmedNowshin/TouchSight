@@ -2,10 +2,14 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
+import AskPanel from "@/components/AskPanel";
+import ExploreLayer from "@/components/ExploreLayer";
 import IssueList from "@/components/IssueList";
 import KeyPanel from "@/components/KeyPanel";
 import PartsEditor from "@/components/PartsEditor";
 import * as api from "@/lib/api";
+import { looksLikeImage, prepareImage } from "@/lib/image";
+import { canSpeak, speak, speakQueue, stopSpeaking } from "@/lib/speech";
 import { Result, Sample, ShownIssue } from "@/lib/types";
 
 const Relief = dynamic(() => import("@/components/Relief"), { ssr: false });
@@ -23,6 +27,12 @@ const TABS = [
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
 
+/** Shape ids in the same order as the spoken tour (containers first, then by importance and size). */
+function orderedIds(result: Result): string[] {
+  const spoken = result.tour.slice(1, -1);
+  return spoken.map((line) => result.shapes.find((s) => s.spoken === line)?.id ?? "");
+}
+
 export default function Home() {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
@@ -35,7 +45,14 @@ export default function Home() {
   const [ink, setInk] = useState(true);
   const [hot, setHot] = useState<number | null>(null);
   const [over, setOver] = useState(false);
+  const [explore, setExplore] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [touring, setTouring] = useState(false);
+  const [voiceOk, setVoiceOk] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => setVoiceOk(canSpeak()), []);
 
   useEffect(() => {
     api.listSamples().then(setSamples).catch(() => setSamples([]));
@@ -50,7 +67,10 @@ export default function Home() {
     const timer = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 1800);
     try {
       const data = await work();
-      if (originalUrl) setOriginal(originalUrl);
+      if (originalUrl !== undefined) setOriginal(originalUrl);
+      stopSpeaking();
+      setTouring(false);
+      setActiveId(null);
       setResult(data);
       setHot(null);
     } catch (e) {
@@ -62,14 +82,31 @@ export default function Home() {
     }
   }, [busy]);
 
-  const sendFile = useCallback((file: File) => {
-    if (!file.type.startsWith("image/")) {
-      setError("That file isn't an image. Use a PNG, JPG or WebP.");
+  const sendFile = useCallback(async (raw: File) => {
+    if (!looksLikeImage(raw)) {
+      setError("That file isn't an image. Use a photo or a PNG, JPG, HEIC or WebP file.");
       return;
     }
     setSelected(null);
-    run(() => api.convert({ file }), URL.createObjectURL(file));
+    const { file, previewUrl } = await prepareImage(raw);
+    run(() => api.convert({ file }), previewUrl ?? "");
   }, [run]);
+
+  const toggleTour = async () => {
+    if (!result) return;
+    if (touring) {
+      stopSpeaking();
+      setTouring(false);
+      setActiveId(null);
+      return;
+    }
+    setTab("page");
+    setTouring(true);
+    const ids = [null, ...orderedIds(result), null];
+    await speakQueue(result.tour, (i) => setActiveId(ids[i] ?? null));
+    setTouring(false);
+    setActiveId(null);
+  };
 
   const runSample = (s: Sample) => {
     setSelected(s.name);
@@ -122,12 +159,17 @@ export default function Home() {
             onDragLeave={() => setOver(false)}
             onDrop={(e) => { e.preventDefault(); setOver(false); const f = e.dataTransfer.files[0]; if (f) sendFile(f); }}
           >
-            <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" hidden
+            <input ref={fileRef} type="file" accept="image/*,.heic,.heif" hidden
               onChange={(e) => { const f = e.target.files?.[0]; if (f) sendFile(f); e.target.value = ""; }} />
             <span className="drop-dots" aria-hidden="true">⠊⠍⠁⠛⠑</span>
             <strong>Drop a diagram here</strong>
-            <span>or choose a file (PNG, JPG, WebP). You can also paste one.</span>
+            <span>or choose a file. Photos, PNG, JPG, HEIC and WebP all work. You can also paste one.</span>
           </label>
+          <button type="button" className="btn camera" onClick={() => cameraRef.current?.click()} disabled={busy}>
+            Take a photo of a page
+          </button>
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden
+            onChange={(e) => { const f = e.target.files?.[0]; if (f) sendFile(f); e.target.value = ""; }} />
 
           {samples.length > 0 && (
             <section className="samples" aria-labelledby="samples-h">
@@ -164,9 +206,22 @@ export default function Home() {
             {TABS.map((t) => (
               <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>{t.label}</button>
             ))}
-            <label className="toggle">
-              <input type="checkbox" checked={ink} onChange={(e) => setInk(e.target.checked)} /> Print labels for helpers
-            </label>
+            <div className="tools">
+              {result && voiceOk && (
+                <>
+                  <button type="button" className={`tool${explore ? " on" : ""}`} aria-pressed={explore}
+                    onClick={() => { setExplore(!explore); setTab("page"); if (!explore) speak("Touch and listen is on. Tap any part to hear it."); else stopSpeaking(); }}>
+                    Touch and listen
+                  </button>
+                  <button type="button" className={`tool${touring ? " on" : ""}`} aria-pressed={touring} onClick={toggleTour}>
+                    {touring ? "Stop tour" : "Guided tour"}
+                  </button>
+                </>
+              )}
+              <label className="toggle">
+                <input type="checkbox" checked={ink} onChange={(e) => setInk(e.target.checked)} /> Print labels for helpers
+              </label>
+            </div>
           </div>
 
           {tab === "page" && (
@@ -182,6 +237,7 @@ export default function Home() {
                         className={`marker${x.phase === "fixed" ? " fixed" : ""}${hot === i ? " on" : ""}`} />
                     ))}
                   </svg>
+                  {(explore || touring) && <ExploreLayer shapes={result.shapes} activeId={activeId} onActive={setActiveId} />}
                 </>
               ) : (
                 <div className="empty">
@@ -201,6 +257,8 @@ export default function Home() {
             : <p className="meta">Convert a diagram first.</p>)}
 
           {error && <p className="error" role="alert">{error}</p>}
+
+          {result && <AskPanel job={result.job} partNames={result.shapes.map((s) => s.name)} />}
 
           {result && (
             <div className="results">

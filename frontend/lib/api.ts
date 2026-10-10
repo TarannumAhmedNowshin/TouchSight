@@ -34,3 +34,12 @@ export async function redesign(job: string, exclude: string[]): Promise<Result> 
   });
   return parse<Result>(res, "Couldn't rebuild the page.");
 }
+
+export async function ask(job: string, question: string): Promise<{ answer: string; provider: string }> {
+  const res = await fetch("/api/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ job, question }),
+  });
+  return parse(res, "Couldn't get an answer right now.");
+}

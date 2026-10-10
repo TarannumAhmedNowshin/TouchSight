@@ -45,3 +45,27 @@ def test_stl_is_watertight_and_a4(cell_image, cell_analysis):
     edges = np.sort(np.concatenate([tri[:, [0, 1]], tri[:, [1, 2]], tri[:, [2, 0]]]), axis=1)
     _, counts = np.unique(edges, axis=0, return_counts=True)
     assert (counts == 2).all()
+
+
+def test_spoken_descriptions_and_hit_shapes(cell_image, cell_analysis):
+    out = pipeline.run(cell_image, analysis=cell_analysis)
+    tour = out.report["tour"]
+    assert tour[0].startswith(out.report["title"]) and len(tour) == len(out.report["shapes"]) + 2
+    nucleus = next(s for s in out.report["shapes"] if s["name"] == "nucleus")
+    assert "inside the cell membrane" in nucleus["spoken"].lower()
+    assert nucleus["type"] == "polygon" and len(nucleus["points"]) > 4
+    # facts never claim a part is "above" its own container
+    assert not any("'nucleolus' is" in f and "'cell membrane'" in f for f in out.facts)
+
+
+def test_spatial_hit_test_prefers_the_smallest_region(cell_image, cell_analysis):
+    from touchsight import spatial, tactile
+    from touchsight import segment
+    from touchsight import vlm
+    analysis = vlm.normalise(cell_analysis)
+    img = segment.load_image(cell_image)
+    scene = tactile.design(segment.segment_elements(segment.remove_text(img, analysis["text_labels"]), analysis),
+                           analysis, img.shape)
+    nucleolus = next(e for e in scene.elements if e["name"] == "nucleolus")
+    c = nucleolus["geom"].representative_point()
+    assert spatial.nearest_part(scene, c.x, c.y)["name"] == "nucleolus"

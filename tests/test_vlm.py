@@ -46,3 +46,18 @@ def test_pad_square_round_trip():
     # a model answering in square-normalised coords maps back onto the original image
     fixed = vlm.unpad_boxes({"elements": [{"box_2d": [280, 400, 460, 600]}]}, fy, fx)
     assert [round(v) for v in fixed["elements"][0]["box_2d"]] == [389, 400, 639, 600]
+
+
+def test_answers_are_grounded_and_speakable(monkeypatch):
+    import dataclasses
+    captured = {}
+
+    def fake_generate(body):
+        captured["text"] = body["contents"][0]["parts"][0]["text"]
+        return "**Up** and to the right, about 2 cm.\n\n- one finger-width"
+
+    monkeypatch.setattr(vlm, "settings", dataclasses.replace(vlm.settings, gemini_api_key="test"))
+    monkeypatch.setattr(vlm, "_gemini_generate", fake_generate)
+    answer, _ = vlm.answer_question("Where is the vacuole?", ["'vacuole' is up and to the right of 'nucleus'."])
+    assert "'vacuole' is up and to the right" in captured["text"]
+    assert "*" not in answer and "\n" not in answer

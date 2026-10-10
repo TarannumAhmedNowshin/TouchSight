@@ -43,7 +43,15 @@ export type Result = {
   heightmap_png: string;
   segmentation_png: string | null;
   timings: Record<string, number>;
+  shapes: Shape[];
+  tour: string[];
 };
+
+export type Shape = { id: string; name: string; spoken: string } & (
+  | { type: "polygon"; points: [number, number][] }
+  | { type: "lines"; lines: [number, number][][] }
+  | { type: "point"; at: [number, number] }
+);
 
 export type Sample = { name: string; url: string; label: string };
 

@@ -21,15 +21,15 @@ from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from touchsight import export, pipeline
+from touchsight import export, intake, pipeline, vlm
 from touchsight.config import settings
-from touchsight.segment import ImageError, check_image
+from touchsight.intake import ImageError
 from touchsight.vlm import VisionError
 
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 log = logging.getLogger("touchsight.api")
 DEBUG_ERRORS = os.getenv("DEBUG_ERRORS", "0") == "1"   # local dev only: show error details to the client
-IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")
+IMAGE_SUFFIXES = (".png", ".jpg", ".jpeg", ".webp")  # trusted demo samples only
 
 app = FastAPI(title="TouchSight", docs_url="/api/docs" if DEBUG_ERRORS else None, redoc_url=None)
 app.add_middleware(CORSMiddleware, allow_origins=settings.allowed_origins, allow_methods=["GET", "POST"],
@@ -71,16 +71,17 @@ _hits: dict[str, deque] = defaultdict(deque)
 _hits_lock = threading.Lock()
 
 
-def rate_limit(request: Request) -> None:
-    """Sliding-window limit per client on the expensive endpoints (protects the vision API quota)."""
+def rate_limit(request: Request, bucket: str = "convert", per_min: int | None = None) -> None:
+    """Sliding-window limit per client and endpoint (protects the vision API quota)."""
+    limit = per_min or settings.rate_limit_per_min
     client = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "?")
     now = time.monotonic()
     with _hits_lock:
-        q = _hits[client]
+        q = _hits[f"{bucket}:{client}"]
         while q and now - q[0] > 60:
             q.popleft()
-        if len(q) >= settings.rate_limit_per_min:
-            raise HTTPException(429, "Too many conversions in a minute. Wait a moment and try again.")
+        if len(q) >= limit:
+            raise HTTPException(429, "That's a lot of requests in a minute. Wait a moment and try again.")
         q.append(now)
 
 
@@ -90,14 +91,14 @@ def _sample_files() -> dict[str, "os.PathLike"]:
 
 
 async def _read_upload(file: UploadFile) -> bytes:
+    """Read an upload within the size cap and normalise it (any supported format -> upright PNG)."""
     data = await file.read(settings.max_upload_bytes + 1)
     if len(data) > settings.max_upload_bytes:
         raise HTTPException(413, "Image is larger than 12 MB. Try a smaller export.")
     try:
-        check_image(data)
+        return await run_in_threadpool(intake.normalise, data)
     except ImageError as ex:
         raise HTTPException(415, str(ex)) from ex
-    return data
 
 
 def _slug(text: str) -> str:
@@ -121,7 +122,7 @@ def _convert(image: bytes, analysis: dict | None = None, exclude: set[str] | Non
             detail += f" {type(ex).__name__}: {ex}"
         raise HTTPException(500, detail) from ex
     job_id = JOBS.put({"image": image, "analysis": out.analysis, "heightmap": out.heightmap,
-                       "svg": out.svg_print, "title": out.report["title"]})
+                       "svg": out.svg_print, "title": out.report["title"], "facts": out.facts})
     return {**out.report, "job": job_id}
 
 
@@ -168,6 +169,26 @@ async def redesign(request: Request, body: RedesignRequest):
     return JSONResponse(await run_in_threadpool(_convert, job["image"], job["analysis"], exclude))
 
 
+class AskRequest(BaseModel):
+    job: str = Field(min_length=8, max_length=64, pattern=r"^[a-f0-9]+$")
+    question: str = Field(min_length=1, max_length=300)
+
+
+@app.post("/api/ask")
+async def ask(request: Request, body: AskRequest):
+    """Answer a spoken question about the current page, grounded in its layout facts."""
+    rate_limit(request, bucket="ask", per_min=30)
+    job = JOBS.get(body.job)
+    try:
+        answer, provider = await run_in_threadpool(vlm.answer_question, body.question, job["facts"])
+    except ValueError as ex:
+        raise HTTPException(422, str(ex)) from ex
+    except VisionError as ex:
+        log.warning("ask failed: %s", ex)
+        raise HTTPException(502, "Couldn't reach a model to answer right now. Try again in a moment.") from ex
+    return {"answer": answer, "provider": provider}
+
+
 def _attachment(content: bytes | str, media_type: str, filename: str) -> Response:
     return Response(content, media_type=media_type,
                     headers={"Content-Disposition": f'attachment; filename="{filename}"',
@@ -204,7 +225,7 @@ async def save_sample(file: UploadFile = File(...), name: str = Form(...), credi
     if not slug:
         raise HTTPException(400, "Give the sample a name.")
     image = await _read_upload(file)
-    filename = f"{slug}.{check_image(image)[2].lower().replace('jpeg', 'jpg')}"
+    filename = f"{slug}.png"
     (settings.samples_dir / filename).write_bytes(image)
     if credit:
         credit_line = re.sub(r"[\r\n]+", " ", credit)[:300]

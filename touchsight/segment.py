@@ -15,7 +15,6 @@ All coordinates in this module are pixels of the working image.
 """
 from __future__ import annotations
 
-import io
 import logging
 
 import cv2
@@ -24,35 +23,14 @@ import numpy as np
 from shapely.geometry import LineString, MultiLineString, Point, Polygon
 from skimage.morphology import skeletonize
 
-from PIL import Image
-
-from .config import settings
+from .intake import ImageError, inspect
 
 log = logging.getLogger(__name__)
 MAX_SIDE = 1000  # working resolution (px, longer side)
 
 
-class ImageError(ValueError):
-    """The upload is not an image we can safely process."""
-
-
-def check_image(image_bytes: bytes) -> tuple[int, int, str]:
-    """Read only the header: reject non-images and decompression bombs before decoding."""
-    try:
-        with Image.open(io.BytesIO(image_bytes)) as im:
-            w, h = im.size
-            fmt = im.format
-    except Exception as ex:
-        raise ImageError("That file isn't a readable image. Use a PNG, JPG or WebP.") from ex
-    if fmt not in ("PNG", "JPEG", "WEBP"):
-        raise ImageError("Use a PNG, JPG or WebP image.")
-    if w * h > settings.max_image_pixels or w < 32 or h < 32:
-        raise ImageError("Image dimensions are out of range (32 px to 40 megapixels).")
-    return w, h, fmt
-
-
 def load_image(image_bytes: bytes) -> np.ndarray:
-    check_image(image_bytes)
+    inspect(image_bytes)
     img = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_UNCHANGED)
     if img is None:
         raise ImageError("Could not decode the image.")

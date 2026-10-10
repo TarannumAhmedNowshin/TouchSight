@@ -48,6 +48,15 @@ TouchSight produces a **guideline-following first draft in seconds**, for a teac
 
 A teacher can then untick parts in the **Parts** tab and rebuild instantly. The earlier reading is reused, so there's no second model call.
 
+## Touch, listen and ask
+
+The printed sheet is half of the experience. The other half is audio, following the talking-tactile approach used in tools like the Talking Tactile Tablet:
+
+- **Touch and listen.** Tap any part of the page on a phone or tablet to hear what it is, where it sits ("inside the cell membrane, towards the top right"), what it feels like and what its braille label says. Slide a finger to hear names as you cross parts. On a laptop, Tab moves between parts and Enter reads one. Smaller nested parts always win the hit test. This runs on the browser's built-in speech, at no cost and with no API key.
+- **Guided tour.** The page is read aloud in a sensible order: title, summary, then containers before contents and big parts before small ones. Each part is highlighted as it's described.
+- **Ask the diagram.** Press the microphone and ask "where is the nucleus compared to the vacuole?" or "what was left out?". The answer is spoken. Answers about *position, size, texture and labels* are grounded in layout facts computed from the actual page geometry (directions, distances in cm and finger-widths, containment), never guessed. The model adds subject knowledge only to explain what a part does. Typed questions work in every browser; voice input needs Chrome, Edge or Safari.
+- **Take a photo of a page.** The camera button opens the phone camera directly. Uploads are identified from their bytes, not their filename, then normalised: PNG, JPEG, WebP, HEIC/HEIF (iPhone), AVIF, GIF, BMP and TIFF are all accepted. Phone EXIF rotation is applied, the first frame of animations is used, transparency is flattened and large photos are shrunk, first in the browser where it can decode the image and always on the server.
+
 ## What's different
 
 | | Hand transcription | Generative approach (e.g. TactileNet) | TouchSight |
@@ -62,12 +71,14 @@ Earlier research tools (e.g. the University of Washington Tactile Graphics Assis
 
 ## What has been verified
 
-`pytest` (29 tests, offline, no API calls):
+`pytest` (52 tests, offline, no API calls):
 - **Braille:** the letters a–z, numbers, decimals and the grade-1 indicator match UEB grade 1; dot and cell spacing match the standard dimensions.
 - **Physical output:** the print SVG is A4 at 1 unit = 1 mm and contains no non-tactile ink; the STL is watertight (every edge shared by exactly two triangles) and A4-sized.
 - **Layout rules:** small parts are detected and enlarged, neighbouring textures always differ, nesting is inferred, scores count only unfixed issues.
 - **Model output handling:** markup, script injection, bad boxes and unknown kinds are neutralised; ids are rewritten.
 - **API:** non-images and oversized images are rejected, sample names are whitelisted, the rate limit works, sample upload is off by default, and the convert → redesign → download path works.
+- **Image intake:** every accepted format, including HEIC and AVIF, becomes an upright RGB PNG; EXIF rotation, CMYK, animation, transparency and downscaling are all covered; output is deterministic.
+- **Spatial language:** spoken descriptions state containment correctly, facts never describe a part as "above" its own container, and the hit test picks the smallest region under the finger. Questions are answered from the page's layout facts, and replies are cleaned for speech.
 
 Manually checked on real Wikimedia diagrams: plant cell and animal cell (clean, first draft scored 64–76 and 100 after auto-fix), heart (recognisable, busier), eye (readable but rough). Box accuracy against known shapes: Gemini 97–99%, Qwen 77–92%.
 
@@ -117,15 +128,17 @@ Run the tests with `source .venv/bin/activate && pytest`.
 ## Project layout
 
 ```
-app.py                    HTTP API: convert, redesign, downloads, rate limit, job store
+app.py                    HTTP API: convert, redesign, ask, downloads, rate limits, job store
 touchsight/config.py      settings from the environment
 touchsight/vlm.py         vision-language reading, provider fallback, validation, cache
 touchsight/segment.py     image checks, text removal, colour-patch tracing, GrabCut, skeletons
 touchsight/tactile.py     physical layout, nesting, textures, braille labels, validator, auto-fix
 touchsight/braille.py     UEB grade 1 with real dot geometry
 touchsight/export.py      print/preview SVG, height map, STL
+touchsight/intake.py      upload normalisation (HEIC, AVIF, EXIF rotation, size caps)
+touchsight/spatial.py     spatial language: spoken descriptions, guided tour, layout facts for Q&A
 touchsight/pipeline.py    orchestration and the report the UI renders
-frontend/                 Next.js app (tactile page, three.js relief, parts editor)
+frontend/                 Next.js app (tactile page, touch and listen, ask by voice, three.js relief, parts editor)
 samples/                  demo diagrams (credits in samples/CREDITS.md)
 cache/                    cached readings for the samples, so demos run without API calls
 tests/                    pytest suite and offline fixtures
