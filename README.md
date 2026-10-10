@@ -71,7 +71,13 @@ Earlier research tools (e.g. the University of Washington Tactile Graphics Assis
 
 ## What has been verified
 
-`pytest` (52 tests, offline, no API calls):
+Verification happens at two levels.
+
+**1. The live AI calls.** In normal use, Gemini (with Groq as backup) reads every new diagram and answers every question. These were checked against real models:
+- `scripts/check_keys.py` sends a synthetic diagram whose true shapes are known and measures how well each model locates them. Gemini scored 97–99% box accuracy and Qwen on Groq 77–92%.
+- Real Wikimedia diagrams were run end to end in the app (results below), and spoken questions were answered by Gemini in the browser.
+
+**2. Our own code, with an automated test suite.** `pytest` runs 52 tests. During these tests the model call is replaced by a saved model answer, so the tests are repeatable, take about 20 seconds, cost nothing and don't use the free-tier quota. They check everything our code does with a model's answer:
 - **Braille:** the letters a–z, numbers, decimals and the grade-1 indicator match UEB grade 1; dot and cell spacing match the standard dimensions.
 - **Physical output:** the print SVG is A4 at 1 unit = 1 mm and contains no non-tactile ink; the STL is watertight (every edge shared by exactly two triangles) and A4-sized.
 - **Layout rules:** small parts are detected and enlarged, neighbouring textures always differ, nesting is inferred, scores count only unfixed issues.
