@@ -1,0 +1,8 @@
+{"diagram_type":"circuit","title":"Simple Circuit","summary":"A battery drives current through a resistor and a bulb in one series loop.","is_3d_perspective":false,
+"elements":[
+ {"id":"e1","name":"wire","kind":"line","importance":3,"box_2d":[200,140,870,860],"parent":null,"reason":"the loop shows the current path"},
+ {"id":"e2","name":"battery","kind":"line","importance":3,"box_2d":[140,470,290,530],"parent":null,"reason":"energy source"},
+ {"id":"e3","name":"resistor","kind":"line","importance":3,"box_2d":[425,820,650,880],"parent":null,"reason":"limits current"},
+ {"id":"e4","name":"bulb","kind":"region","importance":3,"box_2d":[765,435,950,565],"parent":null,"reason":"the load that lights"}],
+"text_labels":[{"text":"Simple Circuit","box_2d":[40,325,100,600]},{"text":"Battery","box_2d":[105,445,150,545]},{"text":"Resistor","box_2d":[510,885,555,1000]},{"text":"Bulb","box_2d":[910,575,955,640]},{"text":"Wire","box_2d":[510,35,555,105]}],
+"dropped":[{"what":"plate thickness difference","reason":"kept as two lines of different length"}]}

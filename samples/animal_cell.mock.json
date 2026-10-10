@@ -1,0 +1,30 @@
+{
+ "diagram_type": "biology",
+ "title": "Animal Cell",
+ "summary": "An animal cell has a membrane enclosing cytoplasm, a nucleus with a nucleolus, mitochondria and a vacuole.",
+ "is_3d_perspective": false,
+ "elements": [
+  {"id":"e1","name":"cell membrane","kind":"region","importance":3,"box_2d":[147,150,920,850],"parent":null,"reason":"outer boundary defines the cell"},
+  {"id":"e2","name":"nucleus","kind":"region","importance":3,"box_2d":[400,400,640,600],"parent":"e1","reason":"control centre, key concept"},
+  {"id":"e3","name":"nucleolus","kind":"region","importance":2,"box_2d":[480,470,553,530],"parent":"e2","reason":"structure inside the nucleus"},
+  {"id":"e4","name":"mitochondrion","kind":"region","importance":3,"box_2d":[340,205,460,355],"parent":"e1","reason":"energy production organelle"},
+  {"id":"e5","name":"mitochondrion","kind":"region","importance":2,"box_2d":[627,625,760,775],"parent":"e1","reason":"shows there are several"},
+  {"id":"e6","name":"vacuole","kind":"region","importance":2,"box_2d":[293,620,427,740],"parent":"e1","reason":"storage organelle"}
+ ],
+ "text_labels": [
+  {"text":"Animal Cell","box_2d":[27,330,73,520]},
+  {"text":"Cell membrane","box_2d":[187,858,227,1000]},
+  {"text":"Mitochondrion","box_2d":[333,18,373,178]},
+  {"text":"Vacuole","box_2d":[333,818,373,908]},
+  {"text":"Nucleus","box_2d":[440,858,480,948]},
+  {"text":"Nucleolus","box_2d":[560,38,600,150]},
+  {"text":"Cytoplasm","box_2d":[853,38,893,158]},
+  {"text":"Ribosomes","box_2d":[827,818,867,942]}
+ ],
+ "dropped": [
+  {"what":"ribosomes","reason":"dozens of tiny dots, unreadable by touch"},
+  {"what":"endoplasmic reticulum lines","reason":"fine decorative curves would clutter"},
+  {"what":"mitochondria inner folds","reason":"detail below tactile resolution"},
+  {"what":"leader lines","reason":"replaced by braille key letters"}
+ ]
+}

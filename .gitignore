@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+venv/
+outputs/
+.DS_Store
+node_modules/
+.next/
+frontend/next-env.d.ts
+*.tsbuildinfo
