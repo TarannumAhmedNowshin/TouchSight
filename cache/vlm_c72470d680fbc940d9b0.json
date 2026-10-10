@@ -1,0 +1,262 @@
+{
+  "diagram_type": "anatomy",
+  "title": "Internal Anatomy of the Heart",
+  "summary": "Illustrates the four heart chambers and major blood vessels that circulate blood.",
+  "is_3d_perspective": false,
+  "elements": [
+    {
+      "id": "e1",
+      "name": "superior vena cava",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        58,
+        186,
+        401,
+        432
+      ],
+      "parent": null,
+      "reason": "carries deoxygenated blood from upper body"
+    },
+    {
+      "id": "e2",
+      "name": "right atrium",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        364,
+        222,
+        685,
+        422
+      ],
+      "parent": null,
+      "reason": "receives deoxygenated blood from the body"
+    },
+    {
+      "id": "e3",
+      "name": "right ventricle",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        570,
+        317,
+        866,
+        672
+      ],
+      "parent": null,
+      "reason": "pumps deoxygenated blood to the lungs"
+    },
+    {
+      "id": "e4",
+      "name": "left atrium",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        297,
+        513,
+        485,
+        742
+      ],
+      "parent": null,
+      "reason": "receives oxygenated blood from the lungs"
+    },
+    {
+      "id": "e5",
+      "name": "left ventricle",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        469,
+        526,
+        817,
+        792
+      ],
+      "parent": null,
+      "reason": "pumps oxygenated blood to the body"
+    },
+    {
+      "id": "e6",
+      "name": "aorta",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        37,
+        345,
+        459,
+        638
+      ],
+      "parent": null,
+      "reason": "main artery distributing blood to the body"
+    },
+    {
+      "id": "e7",
+      "name": "pulmonary artery",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        221,
+        417,
+        534,
+        773
+      ],
+      "parent": null,
+      "reason": "carries deoxygenated blood to the lungs"
+    },
+    {
+      "id": "e8",
+      "name": "inferior vena cava",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        731,
+        239,
+        907,
+        357
+      ],
+      "parent": null,
+      "reason": "carries deoxygenated blood from lower body"
+    }
+  ],
+  "text_labels": [
+    {
+      "text": "Superior Vena Cava",
+      "box_2d": [
+        146,
+        55,
+        201,
+        201
+      ]
+    },
+    {
+      "text": "Aorta",
+      "box_2d": [
+        163,
+        479,
+        186,
+        551
+      ]
+    },
+    {
+      "text": "Pulmonary Artery",
+      "box_2d": [
+        191,
+        762,
+        250,
+        906
+      ]
+    },
+    {
+      "text": "Pulmonary Vein",
+      "box_2d": [
+        289,
+        815,
+        343,
+        959
+      ]
+    },
+    {
+      "text": "Left Atrium",
+      "box_2d": [
+        375,
+        540,
+        429,
+        626
+      ]
+    },
+    {
+      "text": "Mitral Valve",
+      "box_2d": [
+        465,
+        836,
+        517,
+        908
+      ]
+    },
+    {
+      "text": "Aortic Valve",
+      "box_2d": [
+        573,
+        865,
+        627,
+        942
+      ]
+    },
+    {
+      "text": "Left Ventricle",
+      "box_2d": [
+        622,
+        633,
+        676,
+        748
+      ]
+    },
+    {
+      "text": "Pericardium",
+      "box_2d": [
+        920,
+        776,
+        943,
+        934
+      ]
+    },
+    {
+      "text": "Right Ventricle",
+      "box_2d": [
+        698,
+        437,
+        752,
+        551
+      ]
+    },
+    {
+      "text": "Tricuspid Valve",
+      "box_2d": [
+        723,
+        61,
+        777,
+        180
+      ]
+    },
+    {
+      "text": "Pulmonary Valve",
+      "box_2d": [
+        617,
+        36,
+        671,
+        180
+      ]
+    },
+    {
+      "text": "Right Atrium",
+      "box_2d": [
+        471,
+        270,
+        525,
+        355
+      ]
+    },
+    {
+      "text": "Inferior Vena Cava",
+      "box_2d": [
+        920,
+        163,
+        943,
+        408
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "what": "flow arrows inside chambers",
+      "reason": "clutters tactile reading; describe flow direction in text"
+    },
+    {
+      "what": "chordae tendineae and valve flaps",
+      "reason": "too intricate and tactilely confusing"
+    },
+    {
+      "what": "pulmonary veins branches",
+      "reason": "small repetitive vessels crowded against right atrium"
+    }
+  ]
+}

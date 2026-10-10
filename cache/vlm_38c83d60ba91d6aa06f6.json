@@ -1,0 +1,194 @@
+{
+  "diagram_type": "biology",
+  "title": "Animal Cell",
+  "summary": "Diagram showing the major organelles and structures of an animal cell.",
+  "is_3d_perspective": false,
+  "elements": [
+    {
+      "id": "e1",
+      "name": "cell membrane",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        148,
+        150,
+        921,
+        849
+      ],
+      "parent": null,
+      "reason": "outer boundary defining the cell"
+    },
+    {
+      "id": "e2",
+      "name": "nucleus",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        400,
+        400,
+        640,
+        600
+      ],
+      "parent": "e1",
+      "reason": "central organelle containing genetic material"
+    },
+    {
+      "id": "e3",
+      "name": "nucleolus",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        479,
+        470,
+        555,
+        531
+      ],
+      "parent": "e2",
+      "reason": "dense inner region of the nucleus"
+    },
+    {
+      "id": "e4",
+      "name": "vacuole",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        293,
+        620,
+        428,
+        742
+      ],
+      "parent": "e1",
+      "reason": "fluid-filled storage organelle"
+    },
+    {
+      "id": "e5",
+      "name": "mitochondrion",
+      "kind": "region",
+      "importance": 3,
+      "box_2d": [
+        347,
+        212,
+        453,
+        347
+      ],
+      "parent": "e1",
+      "reason": "energy-producing organelle"
+    },
+    {
+      "id": "e6",
+      "name": "mitochondrion",
+      "kind": "region",
+      "importance": 2,
+      "box_2d": [
+        632,
+        636,
+        755,
+        764
+      ],
+      "parent": "e1",
+      "reason": "second mitochondrion in lower cytoplasm"
+    },
+    {
+      "id": "e7",
+      "name": "ribosome",
+      "kind": "point",
+      "importance": 2,
+      "box_2d": [
+        736,
+        716,
+        747,
+        726
+      ],
+      "parent": "e1",
+      "reason": "representative site for protein synthesis"
+    }
+  ],
+  "text_labels": [
+    {
+      "text": "Animal Cell",
+      "box_2d": [
+        33,
+        331,
+        64,
+        518
+      ]
+    },
+    {
+      "text": "Cell membrane",
+      "box_2d": [
+        192,
+        861,
+        215,
+        1000
+      ]
+    },
+    {
+      "text": "Mitochondrion",
+      "box_2d": [
+        339,
+        22,
+        361,
+        175
+      ]
+    },
+    {
+      "text": "Vacuole",
+      "box_2d": [
+        339,
+        821,
+        361,
+        905
+      ]
+    },
+    {
+      "text": "Nucleus",
+      "box_2d": [
+        445,
+        861,
+        468,
+        946
+      ]
+    },
+    {
+      "text": "Nucleolus",
+      "box_2d": [
+        565,
+        42,
+        588,
+        146
+      ]
+    },
+    {
+      "text": "Cytoplasm",
+      "box_2d": [
+        859,
+        41,
+        888,
+        155
+      ]
+    },
+    {
+      "text": "Ribosomes",
+      "box_2d": [
+        832,
+        822,
+        855,
+        939
+      ]
+    }
+  ],
+  "dropped": [
+    {
+      "what": "scattered ribosome dots",
+      "reason": "too numerous and small to feel individually"
+    },
+    {
+      "what": "unlabelled curved green membranes",
+      "reason": "unlabelled detail creates tactile clutter"
+    },
+    {
+      "what": "mitochondria internal zigzags",
+      "reason": "internal folds too small to distinguish tactually"
+    }
+  ]
+}

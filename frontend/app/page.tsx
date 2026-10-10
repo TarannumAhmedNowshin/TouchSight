@@ -171,7 +171,7 @@ export default function Home() {
                   <div className="svg-host" role="img" aria-label={`Tactile graphic: ${result.title}. ${result.summary}`}
                     dangerouslySetInnerHTML={{ __html: result.svg_preview }} />
                   <svg className="markers" viewBox="0 0 297 210" aria-hidden="true">
-                    {issues.map((x, i) => x.at && (
+                    {issues.map((x, i) => x.at && (x.phase === "open" || hot === i) && (
                       <circle key={i} cx={x.at[0]} cy={x.at[1]} r={5}
                         className={`marker${x.phase === "fixed" ? " fixed" : ""}${hot === i ? " on" : ""}`} />
                     ))}
@@ -267,7 +267,7 @@ export default function Home() {
                   <a className="btn ghost" href={`/api/download/${result.job}/heightmap`} download>Height map (PNG)</a>
                 </div>
                 <p className="meta">
-                  Read by {result.provider}. Diagram type: {result.diagram_type}. {result.elements.length} parts kept,{" "}
+                  Read by {result.provider}{result.mask_status ? ` (shape masks: ${result.mask_status})` : ""}. Diagram type: {result.diagram_type}. {result.elements.length} parts kept,{" "}
                   {result.dropped.length} left out.
                 </p>
               </section>

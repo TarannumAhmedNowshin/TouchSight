@@ -28,6 +28,7 @@ export type Result = {
   summary: string;
   diagram_type: string;
   provider: string;
+  mask_status?: string;
   elements: Element[];
   dropped: { what: string; reason: string }[];
   key: KeyRow[];
@@ -50,4 +51,5 @@ export const TEX_NAMES: Record<string, string> = {
   crosshatch: "crosshatch",
   horizontal: "horizontal lines",
   vertical: "vertical lines",
+  grid: "grid",
 };

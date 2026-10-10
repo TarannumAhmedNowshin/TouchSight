@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import base64
+import os
 import time
 
 import cv2
@@ -20,11 +21,23 @@ def run(image_bytes: bytes, analysis: dict | None = None, use_cache: bool = True
         analysis = vlm.normalise(analysis)
     timings["understand"] = round(time.time() - t0, 2)
 
+    masks, mask_status = None, "not requested"
+    if os.getenv("GEMINI_API_KEY") and os.getenv("USE_MODEL_MASKS", "0") == "1":
+        t = time.time()
+        try:
+            masks = vlm.gemini_masks(image_bytes, analysis["elements"], use_cache=use_cache)
+            n_regions = len({e["name"] for e in analysis["elements"] if e["kind"] == "region"})
+            mask_status = f"{len(masks)} of {n_regions} parts"
+        except Exception as ex:  # masks are a bonus; colour regions / GrabCut still work
+            mask_status = f"unavailable ({type(ex).__name__}: {str(ex)[:160]})"
+        timings["masks"] = round(time.time() - t, 2)
+        timings["understand"] = round(timings["understand"] + timings.pop("masks"), 2)
+
     t = time.time()
     img = segment.load_image(image_bytes)
     clean = segment.remove_text(img, analysis["text_labels"],
                                 keep_boxes=[e["box_2d"] for e in analysis["elements"] if e["kind"] != "region"])
-    items = segment.segment_elements(clean, analysis)
+    items = segment.segment_elements(clean, analysis, masks)
     timings["segment"] = round(time.time() - t, 2)
 
     t = time.time()
@@ -52,6 +65,7 @@ def run(image_bytes: bytes, analysis: dict | None = None, use_cache: bool = True
         "summary": scene.summary,
         "diagram_type": analysis.get("diagram_type"),
         "provider": provider,
+        "mask_status": mask_status,
         "analysis": analysis,
         "elements": elements,
         "dropped": scene.dropped,

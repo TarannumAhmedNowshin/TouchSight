@@ -3,12 +3,15 @@ from __future__ import annotations
 
 import io
 import json
+import logging
+import traceback
 import uuid
 import zipfile
 from collections import OrderedDict
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
@@ -69,11 +72,16 @@ async def convert(file: UploadFile | None = File(None), sample: str | None = For
     else:
         raise HTTPException(400, "Upload an image or choose a sample.")
     try:
-        result = _run(data, sample, fresh)
+        result = await run_in_threadpool(_run, data, sample, fresh)  # keep the server responsive
     except HTTPException:
         raise
     except ValueError as ex:
         raise HTTPException(422, str(ex))
+    except Exception as ex:  # surface the real cause instead of a bare 500
+        tb = traceback.format_exc()
+        logging.getLogger("touchsight").error(tb)
+        (ROOT / "cache" / "last_error.txt").write_text(tb)
+        raise HTTPException(500, f"The engine hit an error: {type(ex).__name__}: {ex}. Details saved to cache/last_error.txt")
     job = uuid.uuid4().hex[:10]
     JOBS[job] = {"heightmap": result.pop("_heightmap"), "svg": result["svg_print"], "title": result["title"]}
     while len(JOBS) > MAX_JOBS:

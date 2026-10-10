@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 [ -d .venv ] || { echo "Run 'bash setup.sh' first."; exit 1; }
 command -v node >/dev/null || { echo "Node.js 20+ is needed for the frontend: https://nodejs.org"; exit 1; }
 source .venv/bin/activate
-uvicorn app:app --port 8000 &
+uvicorn app:app --port 8000 --reload --reload-exclude ".venv/*" --reload-exclude "frontend/*" &
 API_PID=$!
 trap 'kill $API_PID 2>/dev/null' EXIT INT TERM
 cd frontend

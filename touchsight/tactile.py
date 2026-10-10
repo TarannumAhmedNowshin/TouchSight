@@ -34,10 +34,10 @@ TEXTURE_W = 0.5
 LEADER_W = 0.6
 POINT_R = 2.6
 LABEL_CLEAR = 1.6    # blank space kept around braille labels
-TEXTURES = ["dots", "diagonal", "crosshatch", "horizontal", "vertical"]
+TEXTURES = ["dots", "diagonal", "crosshatch", "horizontal", "vertical", "grid"]
 TEXTURE_NAMES = {
     "dots": "dots", "diagonal": "diagonal lines", "crosshatch": "crosshatch",
-    "horizontal": "horizontal lines", "vertical": "vertical lines", "none": "plain",
+    "horizontal": "horizontal lines", "vertical": "vertical lines", "grid": "grid", "none": "plain",
 }
 
 DRAW_BOX = (MARGIN, MARGIN + TITLE_H, PAGE_W - MARGIN - KEY_W - 6, PAGE_H - MARGIN)
@@ -219,7 +219,7 @@ def validate(els: list[dict], labels: list[Label] | None = None, three_d: bool =
     for t, names in tex.items():
         if len(names) > 1:
             issues.append(Issue("texture_reuse", "warning", f"Texture '{t}' is used for different things: {', '.join(sorted(names))}."))
-    if len(tex) > 5:
+    if len(tex) > len(TEXTURES):
         issues.append(Issue("too_many_textures", "warning", "More than 5 textures; readers struggle to tell them apart."))
     if labels is not None:
         geoms = [e["geom"] for e in els]
@@ -292,9 +292,15 @@ def autofix(els: list[dict], issues: list[Issue]) -> tuple[list[dict], list[str]
             if not q.is_empty and q.area > 0.55 * small["geom"].area and not _too_small(q):
                 small["geom"] = Polygon(q.exterior)
                 iss.fixed, iss.fix = True, f"trimmed '{small['name']}' to open a 1/8 inch gap"
-            elif small["importance"] < big["importance"]:
-                drop.add(small["id"])
-                iss.fixed, iss.fix = True, f"removed less important '{small['name']}'"
+            else:
+                # give the shared area to the smaller, more specific part: cut it out of the larger one
+                q2 = _largest(big["geom"].difference(small["geom"].buffer(MIN_GAP + 0.3)))
+                if not q2.is_empty and q2.area > 0.5 * big["geom"].area and not _too_small(q2):
+                    big["geom"] = Polygon(q2.exterior)
+                    iss.fixed, iss.fix = True, f"trimmed '{big['name']}' around '{small['name']}'"
+                elif small["importance"] < big["importance"]:
+                    drop.add(small["id"])
+                    iss.fixed, iss.fix = True, f"removed less important '{small['name']}'"
         elif iss.code == "short_lines":
             e = ids[iss.ids[0]]
             keep = [l for l in e["geom"].geoms if l.length >= MIN_SIZE]
@@ -344,9 +350,16 @@ def assign_textures(els: list[dict]) -> None:
         free = [t for t in TEXTURES if t not in taken]
         # prefer an unused texture (so one texture = one meaning), strongest first
         unused = [t for t in free if usage[t] == 0]
-        t = (unused or free or TEXTURES)[0]
+        neighbour_plain = any(chosen.get(m) == "none" for m in adj[n]) or any(
+            o.get("texture") == "none" and any(r["geom"].distance(o["geom"]) < 2 * MIN_GAP for r in groups[n]) for o in regs)
+        if unused:
+            t = unused[0]
+        elif not neighbour_plain:
+            t = "none"  # out of distinct textures: leave it plain rather than give one texture two meanings
+        else:
+            t = (free or TEXTURES)[0]
         chosen[n] = t
-        usage[t] += 1
+        usage[t] = usage.get(t, 0) + 1
         for r in groups[n]:
             r["texture"] = t
 
@@ -370,7 +383,7 @@ def texture_primitives(texture: str, area) -> dict:
         out["dots"] = [(p.x, p.y) for p, ok in zip(pts, inside) if ok]
         return out
     specs = {"diagonal": [(45, 3.6)], "crosshatch": [(45, 4.6), (-45, 4.6)],
-             "horizontal": [(0, 3.2)], "vertical": [(90, 3.2)]}[texture]
+             "horizontal": [(0, 3.2)], "vertical": [(90, 3.2)], "grid": [(0, 4.6), (90, 4.6)]}[texture]
     cx, cy = (minx + maxx) / 2, (miny + maxy) / 2
     R = math.hypot(maxx - minx, maxy - miny) / 2 + 5
     for ang, step in specs:
@@ -522,8 +535,12 @@ def design(items_px: list[dict], analysis: dict, img_shape) -> Scene:
     scene.issues_before = before  # autofix marks which ones it resolved
     els, fixes = autofix(els, before)
     # second pass: fixes can create new conflicts
-    els, fixes2 = autofix(els, validate(els))
-    scene.fixes = fixes + fixes2
+    for _ in range(2):
+        els, more = autofix(els, validate(els))
+        fixes += more
+        if not more:
+            break
+    scene.fixes = fixes
     assign_textures(els)
     labels, used = place_labels(els)
     scene.elements, scene.labels = els, labels

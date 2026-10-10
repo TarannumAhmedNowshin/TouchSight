@@ -134,6 +134,15 @@ def call_gemini(image_bytes: bytes, timeout: float = 90) -> dict:
         ],
         "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2},
     }
+    return _extract_json(gemini_generate(body, timeout))
+
+
+def gemini_generate(body: dict, timeout: float = 90) -> str:
+    """POST to the first Gemini model that accepts the request; remembers the winner."""
+    global _GEMINI_MODEL
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        raise RuntimeError("GEMINI_API_KEY not set")
     models = [_GEMINI_MODEL] if _GEMINI_MODEL else gemini_candidates(key)
     if not models:
         raise RuntimeError("no Gemini Flash model is available to this key")
@@ -144,10 +153,10 @@ def call_gemini(image_bytes: bytes, timeout: float = 90) -> dict:
         if r.status_code in (400, 403, 404) and not _GEMINI_MODEL:
             tried.append(f"{model}: {r.status_code} {r.text[:120]}")
             continue  # retired / not enabled for this key -> try the next one
-        r.raise_for_status()
+        if r.status_code >= 400:
+            raise RuntimeError(f"{model} returned {r.status_code}: {r.text[:200]}")
         _GEMINI_MODEL = model
-        text = r.json()["candidates"][0]["content"]["parts"][0]["text"]
-        return _extract_json(text)
+        return r.json()["candidates"][0]["content"]["parts"][0]["text"]
     raise RuntimeError("no usable Gemini model. Tried -> " + " | ".join(tried))
 
 
@@ -237,7 +246,7 @@ def normalise(analysis: dict) -> dict:
     return out
 
 
-def pad_square(image_bytes: bytes) -> tuple[bytes, float, float]:
+def pad_square(image_bytes: bytes, max_side: int = 1280) -> tuple[bytes, float, float]:
     """Pad to a white square (bottom/right) and cap the size.
 
     Models disagree on whether box_2d is normalised by width, height or the
@@ -254,8 +263,8 @@ def pad_square(image_bytes: bytes) -> tuple[bytes, float, float]:
     side = max(w, h)
     sq = Image.new("RGB", (side, side), "white")
     sq.paste(im, (0, 0))
-    if side > 1280:
-        sq = sq.resize((1280, 1280), Image.LANCZOS)
+    if side > max_side:
+        sq = sq.resize((max_side, max_side), Image.LANCZOS)
     buf = io.BytesIO()
     sq.save(buf, "PNG")
     return buf.getvalue(), side / h, side / w
@@ -304,3 +313,93 @@ def save_to_cache(image_bytes: bytes, analysis: dict) -> Path:
     CACHE_DIR.mkdir(exist_ok=True)
     cp.write_text(json.dumps(normalise(analysis), indent=2))
     return cp
+
+
+# ------------------------------------------------------------------ segmentation masks
+MASK_PROMPT = """Give the segmentation masks for exactly these parts of the diagram:
+{parts}
+Output a JSON list of segmentation masks where each entry contains the 2D bounding box in the key "box_2d",
+the segmentation mask in key "mask", and the part name (copied exactly from the list) in the key "label".
+Segment the whole visible area of each part, including any parts of it hidden under arrows or labels.
+Only include parts from the list."""
+
+
+def _parse_list(text: str) -> list:
+    text = re.sub(r"<think>.*?</think>", "", text.strip(), flags=re.S).strip()
+    fence = re.search(r"```(?:json)?\s*(\[.*\])\s*```", text, flags=re.S)
+    if fence:
+        text = fence.group(1)
+    start, end = text.find("["), text.rfind("]")
+    data = json.loads(text[start: end + 1]) if start != -1 else json.loads(text)
+    if isinstance(data, dict):
+        data = data.get("masks") or data.get("items") or [data]
+    return data
+
+
+def _mask_cache_path(image_bytes: bytes, names: list[str]) -> Path:
+    h = hashlib.sha256(image_bytes + "|".join(names).encode() + b"masks-v1").hexdigest()[:20]
+    return CACHE_DIR / f"masks_{h}.json"
+
+
+def _one_mask(padded: bytes, name: str, fy: float, fx: float, timeout: float) -> dict | None:
+    prompt = MASK_PROMPT.format(parts=f"- {name}")
+    base = {
+        "contents": [{"parts": [
+            {"inline_data": {"mime_type": "image/png", "data": base64.b64encode(padded).decode()}},
+            {"text": prompt},
+        ]}],
+        "generationConfig": {"responseMimeType": "application/json", "temperature": 0.2},
+    }
+    fast = json.loads(json.dumps(base))
+    fast["generationConfig"]["thinkingConfig"] = {"thinkingLevel": "low"}  # masks need perception, not reasoning
+    try:
+        text = gemini_generate(fast, timeout)
+    except RuntimeError as ex:
+        if "400" not in str(ex):
+            raise
+        text = gemini_generate(base, timeout)  # model doesn't know thinkingLevel
+    for it in _parse_list(text):
+        m = it.get("mask") or ""
+        b = it.get("box_2d")
+        if not m or not isinstance(b, list) or len(b) != 4:
+            continue
+        if "," in m[:40]:
+            m = m.split(",", 1)[1]
+        y0, x0, y1, x1 = [float(v) for v in b]
+        return {"label": name, "box_2d": [y0 * fy, x0 * fx, y1 * fy, x1 * fx], "mask_png": m}
+    return None
+
+
+def gemini_masks(image_bytes: bytes, elements: list[dict], use_cache: bool = True, timeout: float = 75) -> list[dict]:
+    """Ask Gemini for a pixel mask per kept region (one request per part, in parallel).
+    Returns entries in ORIGINAL-image normalised coords:
+    {"label", "box_2d": [y0,x0,y1,x1] 0-1000, "mask_png": base64 PNG of the box area}."""
+    from concurrent.futures import ThreadPoolExecutor, wait
+
+    names = list(dict.fromkeys(e["name"] for e in elements if e["kind"] == "region"))
+    if not names:
+        return []
+    cp = _mask_cache_path(image_bytes, names)
+    if use_cache and cp.exists():
+        return json.loads(cp.read_text())
+    if not os.getenv("GEMINI_API_KEY"):
+        raise RuntimeError("GEMINI_API_KEY not set")
+    padded, fy, fx = pad_square(image_bytes, max_side=768)
+    out, errors = [], []
+    pool = ThreadPoolExecutor(max_workers=min(8, len(names)))
+    futs = {pool.submit(_one_mask, padded, n, fy, fx, timeout): n for n in names}
+    done, pending = wait(futs, timeout=timeout + 5)
+    for f in done:
+        try:
+            r = f.result()
+            if r:
+                out.append(r)
+        except Exception as ex:  # noqa: BLE001
+            errors.append(f"{futs[f]}: {type(ex).__name__}")
+    pool.shutdown(wait=False, cancel_futures=True)
+    if not out:
+        raise RuntimeError("no masks returned" + (f" ({'; '.join(errors[:3])})" if errors else ""))
+    if not pending and not errors:  # cache only complete answers
+        CACHE_DIR.mkdir(exist_ok=True)
+        cp.write_text(json.dumps(out))
+    return out
