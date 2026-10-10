@@ -10,15 +10,17 @@ export type Issue = {
 
 export type KeyRow = { name: string; key: string | null; texture: string | null; kind: string };
 
-export type Element = {
+export type Part = {
   id: string;
   name: string;
-  kind: string;
+  kind: "region" | "line" | "point";
   importance: number;
-  texture: string | null;
   reason: string;
-  method: string;
   braille: string;
+  included: boolean;
+  excluded_by_teacher: boolean;
+  texture: string | null;
+  method: string;
 };
 
 export type Result = {
@@ -26,10 +28,10 @@ export type Result = {
   title: string;
   title_braille: string;
   summary: string;
+  description: string;
   diagram_type: string;
   provider: string;
-  mask_status?: string;
-  elements: Element[];
+  elements: Part[];
   dropped: { what: string; reason: string }[];
   key: KeyRow[];
   validation: {
@@ -44,6 +46,8 @@ export type Result = {
 };
 
 export type Sample = { name: string; url: string; label: string };
+
+export type ShownIssue = Issue & { phase: "fixed" | "open" };
 
 export const TEX_NAMES: Record<string, string> = {
   dots: "dots",

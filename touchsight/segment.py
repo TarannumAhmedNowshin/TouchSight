@@ -1,44 +1,70 @@
-"""Box-prompted segmentation and vectorisation.
+"""Tracing step: turn the model's boxes into real shapes, then into vector geometry.
 
-Given the VLM's element boxes, extract each element's real shape from the
-image and turn it into clean vector geometry (pixel coordinates):
-  region -> shapely Polygon (outer outline, holes removed)
-  line   -> shapely MultiLineString (centre-line of the stroke)
-  point  -> shapely Point
+For every element the model kept, find its actual outline in the image:
+  region -> shapely Polygon   (outer outline, holes removed)
+  line   -> MultiLineString   (centre-lines of the strokes)
+  point  -> Point
 
-Segmentation backend: OpenCV GrabCut seeded with the VLM box (a classical
-box-prompted segmenter that runs on any CPU). The `segment_box` function is
-the single seam where a learned segmenter such as SAM / MobileSAM can be
-plugged in (see `SEGMENTER` env var) without touching the rest of the code.
+Regions are traced in this order of preference:
+  1. Colour-patch assignment: the image is split into flat-colour patches and each
+     patch goes to the smallest model box that (almost) contains it. Shaded parts are
+     rebuilt from their gradient bands and neighbours can't overlap.
+  2. Best single colour patch inside the box.
+  3. GrabCut seeded with the box, then a filled edge hull as a last resort.
+All coordinates in this module are pixels of the working image.
 """
 from __future__ import annotations
 
-import os
+import io
+import logging
 
 import cv2
 import networkx as nx
 import numpy as np
 from shapely.geometry import LineString, MultiLineString, Point, Polygon
-from shapely.ops import unary_union
 from skimage.morphology import skeletonize
 
-MAX_SIDE = 1000  # working resolution
+from PIL import Image
+
+from .config import settings
+
+log = logging.getLogger(__name__)
+MAX_SIDE = 1000  # working resolution (px, longer side)
+
+
+class ImageError(ValueError):
+    """The upload is not an image we can safely process."""
+
+
+def check_image(image_bytes: bytes) -> tuple[int, int, str]:
+    """Read only the header: reject non-images and decompression bombs before decoding."""
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as im:
+            w, h = im.size
+            fmt = im.format
+    except Exception as ex:
+        raise ImageError("That file isn't a readable image. Use a PNG, JPG or WebP.") from ex
+    if fmt not in ("PNG", "JPEG", "WEBP"):
+        raise ImageError("Use a PNG, JPG or WebP image.")
+    if w * h > settings.max_image_pixels or w < 32 or h < 32:
+        raise ImageError("Image dimensions are out of range (32 px to 40 megapixels).")
+    return w, h, fmt
 
 
 def load_image(image_bytes: bytes) -> np.ndarray:
-    arr = np.frombuffer(image_bytes, np.uint8)
-    img = cv2.imdecode(arr, cv2.IMREAD_UNCHANGED)
+    check_image(image_bytes)
+    img = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_UNCHANGED)
     if img is None:
-        raise ValueError("could not decode image")
+        raise ImageError("Could not decode the image.")
     if img.ndim == 2:
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
     elif img.shape[2] == 4:  # flatten transparency onto white
         alpha = img[:, :, 3:4].astype(np.float32) / 255
         img = (img[:, :, :3] * alpha + 255 * (1 - alpha)).astype(np.uint8)
     h, w = img.shape[:2]
-    s = MAX_SIDE / max(h, w)
-    if s < 1:
-        img = cv2.resize(img, (int(w * s), int(h * s)), interpolation=cv2.INTER_AREA)
+    scale = MAX_SIDE / max(h, w)
+    if scale < 1:
+        img = cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
     return img
 
 
@@ -48,7 +74,7 @@ def box_px(box_2d, shape):
     return (int(x0 / 1000 * w), int(y0 / 1000 * h), int(x1 / 1000 * w), int(y1 / 1000 * h))
 
 
-def remove_text(img: np.ndarray, text_labels: list[dict], thin_lines: bool = True, keep_boxes=None) -> np.ndarray:
+def remove_text(img: np.ndarray, text_labels: list[dict], keep_boxes=None, thin_lines: bool = True) -> np.ndarray:
     """Erase printed labels (replaced by braille) and hairline leader lines."""
     mask = np.zeros(img.shape[:2], np.uint8)
     for t in text_labels or []:
@@ -194,22 +220,16 @@ class ColourRegions:
         return mask if filled / box_area >= 0.2 else None
 
 
-def segment_box(img: np.ndarray, rect, regions: "ColourRegions | None" = None,
-                model_mask: np.ndarray | None = None, assigned: np.ndarray | None = None) -> tuple[np.ndarray, str]:
-    """Return (binary mask of the object inside rect, method used).
-
-    Order: the vision model's own mask (it knows the anatomy) -> a flat-colour
-    region that agrees with it (crisper edges) -> GrabCut seeded with the box.
-    """
+def segment_box(img: np.ndarray, rect, regions: ColourRegions | None = None,
+                assigned: np.ndarray | None = None) -> tuple[np.ndarray, str]:
+    """Return (binary mask of the object inside rect, method used)."""
     x0, y0, x1, y1 = rect
     box_area = max(1, (x1 - x0) * (y1 - y0))
-    colour = assigned if assigned is not None else (regions.best_for(rect) if regions is not None else None)
-    if model_mask is not None:
-        if colour is not None and _iou_mask(colour, model_mask) > 0.7:
-            return colour, "colour-region (confirmed by model mask)"
-        return model_mask, "model mask"
+    if assigned is not None:
+        return assigned, "colour patches"
+    colour = regions.best_for(rect) if regions is not None else None
     if colour is not None:
-        return colour, "colour-region"
+        return colour, "colour region"
     method = "grabcut"
     try:
         m = _grabcut(img, rect)
@@ -223,60 +243,6 @@ def segment_box(img: np.ndarray, rect, regions: "ColourRegions | None" = None,
         m = _fill_holes(_largest_component(_edge_hull(img, rect)))
         method = "edges"
     return m, method
-
-
-def decode_masks(entries: list[dict], shape) -> list[tuple[str, np.ndarray, tuple]]:
-    """Gemini masks -> [(label, full-size uint8 mask, rect)] at working resolution."""
-    import base64
-    h, w = shape[:2]
-    out = []
-    for en in entries or []:
-        try:
-            x0, y0, x1, y1 = box_px(en["box_2d"], shape)
-            x0, y0 = max(0, x0), max(0, y0)
-            x1, y1 = min(w, x1), min(h, y1)
-            if x1 - x0 < 3 or y1 - y0 < 3:
-                continue
-            raw = cv2.imdecode(np.frombuffer(base64.b64decode(en["mask_png"]), np.uint8), cv2.IMREAD_GRAYSCALE)
-            if raw is None:
-                continue
-            m = cv2.resize(raw, (x1 - x0, y1 - y0), interpolation=cv2.INTER_LINEAR)
-            full = np.zeros((h, w), np.uint8)
-            full[y0:y1, x0:x1] = np.where(m > 127, 255, 0)
-            full = _fill_holes(_largest_component(full))
-            if full.any():
-                out.append((en.get("label", ""), full, (x0, y0, x1, y1)))
-        except Exception:
-            continue
-    return out
-
-
-def _iou_mask(a: np.ndarray, b: np.ndarray) -> float:
-    inter = np.logical_and(a > 0, b > 0).sum()
-    union = np.logical_or(a > 0, b > 0).sum()
-    return inter / union if union else 0.0
-
-
-def _rect_iou(a, b) -> float:
-    ix = max(0, min(a[2], b[2]) - max(a[0], b[0]))
-    iy = max(0, min(a[3], b[3]) - max(a[1], b[1]))
-    inter = ix * iy
-    ua = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
-    return inter / ua if ua else 0.0
-
-
-def match_mask(e: dict, rect, decoded, used: set) -> np.ndarray | None:
-    best, best_s = None, 0.0
-    for i, (label, m, r) in enumerate(decoded):
-        if i in used:
-            continue
-        s = _rect_iou(rect, r) + (0.6 if label == e["name"] else 0.0)
-        if s > best_s:
-            best, best_s = i, s
-    if best is None or best_s < 0.35:
-        return None
-    used.add(best)
-    return decoded[best][1]
 
 
 def mask_to_polygon(mask: np.ndarray) -> Polygon | None:
@@ -347,27 +313,21 @@ def segment_line(img: np.ndarray, rect) -> MultiLineString | None:
 
 
 # ---------------------------------------------------------------- driver
-def segment_elements(img: np.ndarray, analysis: dict, masks: list[dict] | None = None) -> list[dict]:
+def segment_elements(img: np.ndarray, analysis: dict) -> list[dict]:
     """Attach pixel-space geometry to each element of the analysis."""
-    out = []
     try:
         regions = ColourRegions(img)
-    except Exception:
-        regions = None
-    decoded = decode_masks(masks, img.shape) if masks else []
-    used: set = set()
-    assigned = {}
-    if regions is not None:
-        try:
-            assigned = regions.assign({e["id"]: box_px(e["box_2d"], img.shape)
-                                       for e in analysis["elements"] if e["kind"] == "region"})
-        except Exception:
-            assigned = {}
+        assigned = regions.assign({e["id"]: box_px(e["box_2d"], img.shape)
+                                   for e in analysis["elements"] if e["kind"] == "region"})
+    except (cv2.error, ValueError) as ex:
+        log.warning("colour regions unavailable: %s", ex)
+        regions, assigned = None, {}
+    out = []
     for e in analysis["elements"]:
         try:
-            mm = match_mask(e, box_px(e["box_2d"], img.shape), decoded, used) if decoded and e["kind"] == "region" else None
-            item = _segment_one(img, e, regions, mm, assigned.get(e["id"]))
-        except Exception:  # one awkward element should never sink the whole page
+            item = _segment_one(img, e, regions, assigned.get(e["id"]))
+        except Exception:  # one awkward element must never sink the whole page
+            log.exception("could not trace %r", e.get("name"))
             item = None
         if item is not None:
             out.append(item)
@@ -375,23 +335,23 @@ def segment_elements(img: np.ndarray, analysis: dict, masks: list[dict] | None =
     return out
 
 
-def _segment_one(img: np.ndarray, e: dict, regions=None, model_mask=None, assigned=None) -> dict | None:
+def _segment_one(img: np.ndarray, e: dict, regions: ColourRegions | None,
+                 assigned: np.ndarray | None) -> dict | None:
     rect = box_px(e["box_2d"], img.shape)
     item = dict(e)
-    if True:
-        if e["kind"] == "region":
-            mask, method = segment_box(img, rect, regions, model_mask, assigned)
-            poly = mask_to_polygon(mask)
-            if poly is None or poly.area < 30:
-                return None
-            item["geom"], item["method"] = poly, method
-        elif e["kind"] == "line":
-            ml = segment_line(img, rect)
-            if ml is None:
-                return None
-            item["geom"], item["method"] = ml, "skeleton"
-        else:
-            item["geom"], item["method"] = Point((rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2), "box-centre"
+    if e["kind"] == "region":
+        mask, method = segment_box(img, rect, regions, assigned)
+        poly = mask_to_polygon(mask)
+        if poly is None or poly.area < 30:
+            return None
+        item["geom"], item["method"] = poly, method
+    elif e["kind"] == "line":
+        lines = segment_line(img, rect)
+        if lines is None:
+            return None
+        item["geom"], item["method"] = lines, "stroke skeleton"
+    else:
+        item["geom"], item["method"] = Point((rect[0] + rect[2]) / 2, (rect[1] + rect[3]) / 2), "box centre"
     return item
 
 
@@ -422,4 +382,3 @@ def debug_overlay(img: np.ndarray, items: list[dict]) -> np.ndarray:
     return vis
 
 
-__all__ = ["load_image", "remove_text", "segment_elements", "debug_overlay", "unary_union"]

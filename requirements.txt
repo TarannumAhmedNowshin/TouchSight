@@ -1,12 +1,15 @@
-fastapi>=0.110
-uvicorn[standard]>=0.29
-python-multipart>=0.0.9
-python-dotenv>=1.0
-httpx>=0.27
-pillow>=10.0
-numpy>=1.26
-opencv-python-headless>=4.9
-shapely>=2.0
-scikit-image>=0.22
-networkx>=3.2
-numpy-stl>=3.1
+# Pinned to the versions verified end to end (Python 3.11). Upgrade deliberately.
+fastapi==0.143.0
+starlette==1.7.0
+pydantic==2.14.0
+uvicorn[standard]==0.54.0
+python-multipart==0.0.32
+python-dotenv==1.2.4
+httpx==0.28.1
+pillow==12.3.0
+numpy==2.4.6
+opencv-python-headless==5.0.0.93
+shapely==2.2.0
+scikit-image==0.26.0
+networkx==3.6.1
+numpy-stl==4.0.1

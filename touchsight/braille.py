@@ -1,4 +1,4 @@
-"""Uncontracted (Grade 1) English braille with physical dot geometry.
+"""Uncontracted English braille (UEB grade 1) with physical dot geometry.
 
 Dimensions follow common signage/paper standards: dot diameter ~1.44 mm,
 dot spacing within a cell 2.5 mm, cell-to-cell 6.2 mm, line-to-line 10 mm.
@@ -21,12 +21,15 @@ _LETTERS = {
 _PUNCT = {",": "2", ";": "23", ":": "25", ".": "256", "!": "235", "?": "236",
           "'": "3", "-": "36", "(": "2356", ")": "2356", "/": "34", "&": "12346"}
 NUMBER_SIGN = "3456"
+GRADE1_INDICATOR = "56"  # a standalone letter could be read as a contraction ("n" = "not") without it
 _DIGITS = {"1": "a", "2": "b", "3": "c", "4": "d", "5": "e", "6": "f", "7": "g", "8": "h", "9": "i", "0": "j"}
 
 
 def to_cells(text: str) -> list[str]:
     """Translate text to a list of cells, each a string of dot numbers ('' = blank)."""
     cells: list[str] = []
+    if len(text.strip()) == 1 and text.strip().lower() in _LETTERS:
+        cells.append(GRADE1_INDICATOR)
     in_number = False
     for ch in text.lower():
         if ch.isdigit():
@@ -35,7 +38,8 @@ def to_cells(text: str) -> list[str]:
                 in_number = True
             cells.append(_LETTERS[_DIGITS[ch]])
             continue
-        in_number = False if not ch == "." else in_number
+        if ch != ".":
+            in_number = False
         if ch in _LETTERS:
             cells.append(_LETTERS[ch])
         elif ch == " ":

@@ -175,3 +175,17 @@ button, input { font: inherit; color: inherit; }
 .markers { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 .score .num.after { color: var(--pass); }
 .sample:disabled { opacity: .6; cursor: wait; }
+
+/* parts editor + description */
+.hint { margin: 0 0 8px; font-size: 14px; color: var(--ink-soft); }
+.parts { list-style: none; padding: 0 !important; }
+.parts li { margin-bottom: 8px; }
+.parts label { display: grid; grid-template-columns: 22px 1fr; gap: 8px; cursor: pointer; align-items: start; }
+.parts input { width: 18px; height: 18px; margin-top: 3px; accent-color: var(--ink); }
+.parts .br { letter-spacing: .06em; }
+.rebuild { margin-top: 8px; width: auto; display: inline-block; cursor: pointer; font: inherit; font-weight: 700; }
+.rebuild:disabled { opacity: .45; cursor: not-allowed; }
+.description { margin: 0 0 8px; font-size: 15px; line-height: 1.5; background: var(--sheet); padding: 10px 12px; border-radius: var(--radius-s); }
+.keybox h2 { margin-top: 18px; }
+.keybox h2:first-child { margin-top: 0; }
+.keybox > .btn.ghost { display: inline-block; width: auto; cursor: pointer; font: inherit; background: transparent; }

@@ -2,7 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Issue, Result, Sample, TEX_NAMES } from "@/lib/types";
+import IssueList from "@/components/IssueList";
+import KeyPanel from "@/components/KeyPanel";
+import PartsEditor from "@/components/PartsEditor";
+import * as api from "@/lib/api";
+import { Result, Sample, ShownIssue } from "@/lib/types";
 
 const Relief = dynamic(() => import("@/components/Relief"), { ssr: false });
 
@@ -12,16 +16,20 @@ const STEPS = [
   { id: "design", title: "Design for touch", text: "Textures, dead zones and braille labels follow tactile-graphics guidelines." },
   { id: "export", title: "Check and export", text: "A readability check fixes what it can, then builds print and 3D files." },
 ];
-type Tab = "page" | "relief" | "read";
-type ShownIssue = Issue & { phase: "fixed" | "open" };
+const TABS = [
+  { id: "page", label: "Tactile page" },
+  { id: "relief", label: "3D relief" },
+  { id: "parts", label: "Parts" },
+] as const;
+type Tab = (typeof TABS)[number]["id"];
 
 export default function Home() {
   const [samples, setSamples] = useState<Sample[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
-  const [orig, setOrig] = useState<string>("");
+  const [original, setOriginal] = useState("");
   const [busy, setBusy] = useState(false);
-  const [step, setStep] = useState(-1); // index of active step while busy
+  const [step, setStep] = useState(-1);
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("page");
   const [ink, setInk] = useState(true);
@@ -30,21 +38,19 @@ export default function Home() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    fetch("/api/samples").then((r) => r.json()).then(setSamples).catch(() => {});
+    api.listSamples().then(setSamples).catch(() => setSamples([]));
   }, []);
 
-  const convert = useCallback(async (fd: FormData, origUrl: string) => {
+  /** Run a request while walking the step list (the server does every stage in one call). */
+  const run = useCallback(async (work: () => Promise<Result>, originalUrl?: string) => {
     if (busy) return;
     setBusy(true);
     setError(null);
     setStep(0);
-    // the server runs every stage in one request; walk the list while we wait
     const timer = setInterval(() => setStep((s) => Math.min(s + 1, STEPS.length - 1)), 1800);
     try {
-      const res = await fetch("/api/convert", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Conversion failed. Try again or use a different image.");
-      setOrig(origUrl);
+      const data = await work();
+      if (originalUrl) setOriginal(originalUrl);
       setResult(data);
       setHot(null);
     } catch (e) {
@@ -56,29 +62,32 @@ export default function Home() {
     }
   }, [busy]);
 
-  const sendFile = (f: File) => {
-    if (!f.type.startsWith("image/")) return setError("That file isn't an image. Use a PNG, JPG or WebP.");
+  const sendFile = useCallback((file: File) => {
+    if (!file.type.startsWith("image/")) {
+      setError("That file isn't an image. Use a PNG, JPG or WebP.");
+      return;
+    }
     setSelected(null);
-    const fd = new FormData();
-    fd.append("file", f);
-    convert(fd, URL.createObjectURL(f));
-  };
+    run(() => api.convert({ file }), URL.createObjectURL(file));
+  }, [run]);
 
   const runSample = (s: Sample) => {
     setSelected(s.name);
-    const fd = new FormData();
-    fd.append("sample", s.name);
-    convert(fd, s.url);
+    run(() => api.convert({ sample: s.name }), s.url);
+  };
+
+  const rebuild = (exclude: string[]) => {
+    if (result) run(() => api.redesign(result.job, exclude));
   };
 
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {
-      const f = [...(e.clipboardData?.files || [])].find((x) => x.type.startsWith("image/"));
-      if (f) sendFile(f);
+      const file = [...(e.clipboardData?.files || [])].find((x) => x.type.startsWith("image/"));
+      if (file) sendFile(file);
     };
     document.addEventListener("paste", onPaste);
     return () => document.removeEventListener("paste", onPaste);
-  });
+  }, [sendFile]);
 
   const issues: ShownIssue[] = result
     ? [
@@ -87,10 +96,7 @@ export default function Home() {
       ]
     : [];
 
-  const stepState = (i: number) => {
-    if (busy) return i < step ? "done" : i === step ? "active" : "";
-    return result ? "done" : "";
-  };
+  const stepState = (i: number) => (busy ? (i < step ? "done" : i === step ? "active" : "") : result ? "done" : "");
 
   return (
     <>
@@ -128,7 +134,8 @@ export default function Home() {
               <h2 id="samples-h">Or try a sample</h2>
               <div className="sample-row">
                 {samples.map((s) => (
-                  <button key={s.name} className="sample" aria-pressed={selected === s.name} onClick={() => runSample(s)} disabled={busy}>
+                  <button key={s.name} className="sample" aria-pressed={selected === s.name}
+                    onClick={() => runSample(s)} disabled={busy}>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={s.url} alt="" />
                     <span>{s.label}</span>
@@ -152,12 +159,10 @@ export default function Home() {
           </section>
         </aside>
 
-        <section className="stage" aria-live="polite">
+        <section className="stage" aria-live="polite" aria-busy={busy}>
           <div className="tabs" role="tablist">
-            {(["page", "relief", "read"] as Tab[]).map((t) => (
-              <button key={t} role="tab" aria-selected={tab === t} onClick={() => setTab(t)}>
-                {t === "page" ? "Tactile page" : t === "relief" ? "3D relief" : "How it was read"}
-              </button>
+            {TABS.map((t) => (
+              <button key={t.id} role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}>{t.label}</button>
             ))}
             <label className="toggle">
               <input type="checkbox" checked={ink} onChange={(e) => setInk(e.target.checked)} /> Print labels for helpers
@@ -168,7 +173,8 @@ export default function Home() {
             <div className={`sheet${busy ? " busy" : ""}${ink ? "" : " ink-off"}`}>
               {result ? (
                 <>
-                  <div className="svg-host" role="img" aria-label={`Tactile graphic: ${result.title}. ${result.summary}`}
+                  {/* SVG is generated server-side from sanitised data only (see touchsight/export.py) */}
+                  <div className="svg-host" role="img" aria-label={`Tactile graphic: ${result.description}`}
                     dangerouslySetInnerHTML={{ __html: result.svg_preview }} />
                   <svg className="markers" viewBox="0 0 297 210" aria-hidden="true">
                     {issues.map((x, i) => x.at && (x.phase === "open" || hot === i) && (
@@ -186,42 +192,13 @@ export default function Home() {
             </div>
           )}
 
-          {tab === "relief" && (result ? <Relief heightmap={result.heightmap_png} /> :
-            <div className="relief"><p className="relief-hint">Convert a diagram first to see its raised surface.</p></div>)}
+          {tab === "relief" && (result ? <Relief heightmap={result.heightmap_png} /> : (
+            <div className="relief"><p className="relief-hint">Convert a diagram first to see its raised surface.</p></div>
+          ))}
 
-          {tab === "read" && result && (
-            <div>
-              <div className="read-grid">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <figure><img src={orig} alt="Original diagram" /><figcaption>Original</figcaption></figure>
-                {result.segmentation_png && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <figure><img src={`data:image/png;base64,${result.segmentation_png}`} alt="Shapes the pipeline traced" />
-                    <figcaption>Traced shapes</figcaption></figure>
-                )}
-              </div>
-              <div className="read-lists">
-                <div>
-                  <h3>Kept</h3>
-                  <ul>
-                    {result.elements.map((e) => (
-                      <li key={e.id}><b>{e.name}</b> <span aria-hidden="true">{e.braille}</span>
-                        <small>{e.reason}{e.texture && e.texture !== "none" ? `, ${TEX_NAMES[e.texture]}` : ""}</small></li>
-                    ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3>Left out</h3>
-                  <ul>
-                    {result.dropped.length ? result.dropped.map((x, i) => (
-                      <li key={i}><b>{x.what}</b><small>{x.reason}</small></li>
-                    )) : <li>Nothing</li>}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-          {tab === "read" && !result && <p className="meta">Convert a diagram first.</p>}
+          {tab === "parts" && (result
+            ? <PartsEditor result={result} original={original} busy={busy} onRebuild={rebuild} />
+            : <p className="meta">Convert a diagram first.</p>)}
 
           {error && <p className="error" role="alert">{error}</p>}
 
@@ -234,43 +211,9 @@ export default function Home() {
                   <span className="arrow" aria-hidden="true" />
                   <div><span className="num after">{result.validation.after.score}</span><span className="cap">after auto-fix</span></div>
                 </div>
-                <ul className="issues">
-                  {issues.length === 0 && (
-                    <li className="none">No problems found. Every shape, gap and label meets the size rules.</li>
-                  )}
-                  {issues.map((x, i) => (
-                    <li key={i} className={x.phase === "fixed" ? "fixed" : x.severity}
-                      data-at={x.at ? i : undefined}
-                      onMouseEnter={() => x.at && setHot(i)} onMouseLeave={() => setHot(null)}
-                      onClick={() => { if (x.at) { setTab("page"); setHot(i); } }}>
-                      {x.message}
-                      <small>{x.phase === "fixed" ? `Fixed: ${x.fix}` : x.severity === "error" ? "Needs a person to check" : "Worth a look"}</small>
-                    </li>
-                  ))}
-                </ul>
+                <IssueList issues={issues} onFocus={setHot} onSelect={(i) => { setTab("page"); setHot(i); }} />
               </section>
-              <section className="keybox">
-                <h2>Key</h2>
-                <ul>
-                  {result.key.map((row) => (
-                    <li key={row.name}>
-                      <span className="k">{row.key ?? ""}</span>
-                      <span className="b" aria-hidden="true">{result.elements.find((e) => e.name === row.name)?.braille}</span>
-                      <small>{row.name}{row.texture ? `, ${TEX_NAMES[row.texture]}` : ""}</small>
-                    </li>
-                  ))}
-                </ul>
-                <h2 className="dl-h">Download</h2>
-                <div className="downloads">
-                  <a className="btn primary" href={`/api/download/${result.job}/svg`} download>Print file for swell paper (SVG)</a>
-                  <a className="btn" href={`/api/download/${result.job}/stl`} download>3D-print file (STL)</a>
-                  <a className="btn ghost" href={`/api/download/${result.job}/heightmap`} download>Height map (PNG)</a>
-                </div>
-                <p className="meta">
-                  Read by {result.provider}{result.mask_status ? ` (shape masks: ${result.mask_status})` : ""}. Diagram type: {result.diagram_type}. {result.elements.length} parts kept,{" "}
-                  {result.dropped.length} left out.
-                </p>
-              </section>
+              <KeyPanel result={result} />
             </div>
           )}
         </section>

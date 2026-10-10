@@ -186,6 +186,21 @@ def to_page(items: list[dict], img_shape) -> tuple[list[dict], float]:
     return out, s
 
 
+def infer_nesting(els: list[dict]) -> None:
+    """Fill in missing parent links from geometry: a region lying (almost) entirely inside a
+    larger one is nested in the smallest such region. Models often omit these links."""
+    regs = sorted(_regions(els), key=lambda e: e["geom"].area)
+    ids = _by_id(els)
+    for i, child in enumerate(regs):
+        if child.get("parent") in ids:
+            continue
+        for container in regs[i + 1:]:
+            if container["geom"].area > 1.2 * child["geom"].area and \
+                    child["geom"].intersection(container["geom"]).area >= 0.9 * child["geom"].area:
+                child["parent"] = container["id"]
+                break
+
+
 # ------------------------------------------------------------------ validator
 def validate(els: list[dict], labels: list[Label] | None = None, three_d: bool = False) -> list[Issue]:
     issues: list[Issue] = []
@@ -252,6 +267,12 @@ def validate(els: list[dict], labels: list[Label] | None = None, three_d: bool =
         issues.append(Issue("perspective", "warning",
                             "The original uses a 3-D view; tactile readers do better with a flat side or top view."))
     return issues
+
+
+def first_draft_score(scene: "Scene") -> int:
+    """Score of the untouched draft, on the same checks as the final page (labels included)."""
+    unfixed = [Issue(**{**i.__dict__, "fixed": False}) for i in scene.issues_before]
+    return score(unfixed + [i for i in scene.issues_after if i.code.startswith("label")])
 
 
 def score(issues: list[Issue]) -> int:
@@ -480,7 +501,6 @@ def place_labels(els: list[dict]) -> tuple[list[Label], dict[str, str]]:
     used_keys: dict[str, str] = {}
     draw_area = box(*DRAW_BOX)
     edges = unary_union([e["geom"].exterior if e["geom"].geom_type == "Polygon" else e["geom"] for e in els])
-    obstacles = edges.buffer(MIN_GAP)
     h = br.CELL_H
 
     def taken():
@@ -560,6 +580,7 @@ def build_key(els: list[dict], used_keys: dict[str, str]) -> list[dict]:
 # ------------------------------------------------------------------ driver
 def design(items_px: list[dict], analysis: dict, img_shape) -> Scene:
     els, s = to_page(items_px, img_shape)
+    infer_nesting(els)
     scene = Scene(analysis.get("title") or "diagram", analysis.get("summary", ""), els,
                   dropped=analysis.get("dropped", []), scale=s)
     before = validate(els, three_d=analysis.get("is_3d_perspective", False))

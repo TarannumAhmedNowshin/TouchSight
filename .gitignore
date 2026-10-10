@@ -1,12 +1,23 @@
+# secrets
 .env
+.env.*
+!.env.example
+
+# python
 __pycache__/
 *.pyc
 .venv/
 venv/
-outputs/
-.DS_Store
+.pytest_cache/
+
+# node
 node_modules/
 .next/
 frontend/next-env.d.ts
 *.tsbuildinfo
+
+# local artefacts
+outputs/
+cache/*.tmp
 cache/last_error.txt
+.DS_Store

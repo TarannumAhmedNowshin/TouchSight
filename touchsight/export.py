@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import io
-from xml.sax.saxutils import escape
+from xml.sax.saxutils import escape, quoteattr
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
@@ -105,7 +105,7 @@ def to_svg(scene: Scene, mode: str = "print") -> str:
         o.append('<g class="tex" fill="#000">' + "".join(
             f'<circle cx="{x:.2f}" cy="{y:.2f}" r="0.75"/>' for x, y in P["tex_dots"]) + "</g>")
     for ol in P["outlines"]:
-        o.append(f'<path class="outline" data-id="{ol["id"]}" d="{_path(ol["coords"], True)}" stroke="#000" '
+        o.append(f'<path class="outline" data-id={quoteattr(str(ol["id"]))} d="{_path(ol["coords"], True)}" stroke="#000" '
                  f'stroke-width="{OUTLINE_W}" fill="none" stroke-linejoin="round"/>')
     for c in P["lines"]:
         o.append(f'<path class="line" d="{_path(c)}" stroke="#000" stroke-width="{OUTLINE_W}" fill="none" '

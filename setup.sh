@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
-# One-time setup:  bash setup.sh
-set -e
+# One-time local setup: Python venv, dependencies, provider check.   Usage: bash setup.sh
+set -euo pipefail
 cd "$(dirname "$0")"
-PY=python3
-if ! $PY -c 'import sys; assert sys.version_info >= (3,10)' 2>/dev/null; then
-  echo "Python 3.10+ needed. Found: $($PY --version)"; exit 1
-fi
+
+PY=${PYTHON:-python3}
+$PY -c 'import sys; assert sys.version_info >= (3, 10)' 2>/dev/null \
+  || { echo "Python 3.10+ is required (found: $($PY --version 2>&1))."; exit 1; }
+
 [ -d .venv ] || $PY -m venv .venv
 source .venv/bin/activate
 pip install --upgrade pip -q
-pip install -r requirements.txt -q
-echo "✅ environment ready"
-[ -f .env ] || { echo "⚠️  .env missing: cp .env.example .env and add your keys"; exit 1; }
-python test_keys.py
+pip install -r requirements-dev.txt -q
+echo "Environment ready."
+
+if [ ! -f .env ]; then
+  echo "No .env yet: run 'cp .env.example .env' and add your API keys, then rerun."
+  exit 1
+fi
+python scripts/check_keys.py
