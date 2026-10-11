@@ -4,6 +4,10 @@
 
 Built for Banana Hacks 2026 (image AI).
 
+**▶ [Watch the demo video](https://www.youtube.com/watch?v=70MXMvHJaXM)** · **[Try it live](https://touch-sight.vercel.app)**
+
+[![TouchSight demo video](https://img.youtube.com/vi/70MXMvHJaXM/maxresdefault.jpg)](https://www.youtube.com/watch?v=70MXMvHJaXM)
+
 ---
 
 ## The problem
